@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
+import { Magnifier } from 'react-image-magnifiers'
 import './App.css';
 
 function App() {
@@ -20,9 +21,10 @@ function App() {
   // currentId == int
   const [currentId, setCurrentId] = useState(null)
 
+
   useEffect(() => {
     const fetchData = async () => {
-      const result = await axios.get('https://picsum.photos/v2/list');
+      const result = await axios.get('https://picsum.photos/v2/list')
       setImages(result.data);
     }
     fetchData();
@@ -30,11 +32,16 @@ function App() {
   }, [setImages])
 
 
+
+
   const getImage = (id) => images.find(img => img.id === id);
   const currentImage = getImage(currentId);
 
+
+
   return (
     <div className="App">
+
       <div className="wrap">
         <div className="containerList">
           {images.map((item, idx) => (
@@ -43,15 +50,17 @@ function App() {
             </div>
           ))}
         </div>
-        <div className="containerImg">
-          {currentImage && (
-            <>
-              <img className="imageContent" alt={`image-${currentImage.author}`} src={`${currentImage.download_url}`} />
-            </>
-          )}
-        </div>
+        <div className="containRight">
+          <div className="containerImg">
+            {currentImage && (
+              <div  >
+                <img className="imageContent" alt={`image-${currentImage.author}`} src={`${currentImage.download_url}`} />
+              </div>
+            )}
+          </div>
+          <button>dd</button></div>
       </div >
-    </div>
+    </div >
   );
 }
 
