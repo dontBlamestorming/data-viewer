@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import axios from 'axios'
-import { Magnifier } from 'react-image-magnifiers'
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import './App.css';
 
 function App() {
@@ -17,50 +16,52 @@ function App() {
     ...
   ]
   */
-  const [images, setImages] = useState([])
+  const [images, setImages] = useState([]);
   // currentId == int
-  const [currentId, setCurrentId] = useState(null)
-
+  const [currentId, setCurrentId] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
-      const result = await axios.get('https://picsum.photos/v2/list')
+      const result = await axios.get('https://picsum.photos/v2/list');
       setImages(result.data);
-    }
+    };
+
     fetchData();
+  }, [setImages]);
 
-  }, [setImages])
-
-
-
-
-  const getImage = (id) => images.find(img => img.id === id);
+  const getImage = (id) => images.find((img) => img.id === id);
   const currentImage = getImage(currentId);
-
-
 
   return (
     <div className="App">
-
       <div className="wrap">
         <div className="containerList">
           {images.map((item, idx) => (
             <div key={idx}>
-              <p onClick={() => { setCurrentId(item.id) }}>{`image-${item.id}`}</p>
+              <p
+                onClick={() => {
+                  setCurrentId(item.id);
+                }}
+              >{`image-${item.id}`}</p>
             </div>
           ))}
         </div>
         <div className="containRight">
           <div className="containerImg">
             {currentImage && (
-              <div  >
-                <img className="imageContent" alt={`image-${currentImage.author}`} src={`${currentImage.download_url}`} />
+              <div>
+                <img
+                  className="imageContent"
+                  alt={`image-${currentImage.author}`}
+                  src={`${currentImage.download_url}`}
+                />
               </div>
             )}
           </div>
-          <button>dd</button></div>
-      </div >
-    </div >
+          <button>dd</button>
+        </div>
+      </div>
+    </div>
   );
 }
 
