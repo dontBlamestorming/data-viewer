@@ -16,7 +16,6 @@ from django.http import JsonResponse
 def pics_list(request, pics_id):
     source = get_object_or_404(Source, pk=pics_id)  # 해당 pk이 DoesNotExist인 경우 404
     serializer = SourceSerializer(source)
-    # print(source.image.url)
     return Response(serializer.data)
 
 '''

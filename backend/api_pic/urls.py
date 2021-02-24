@@ -5,4 +5,5 @@ from django.conf import settings
 
 urlpatterns = [
     path('<int:pics_id>/', views.pics_list)
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]
+

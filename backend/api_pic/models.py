@@ -7,7 +7,6 @@ class Dataset(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="dataset_set"
     )
 
-
 class Data(models.Model):
     source = models.ImageField()
     valid = models.ImageField()
@@ -31,6 +30,11 @@ class Source(models.Model):
 """
 django models
 1:1, 1:N, N:N relations
+
+서버쪽에서 
+_x -> 원본 source
+_y -> validate (사람이 작업한 사진)
+_z? -> fake 사진
 """
 
 # on_delete=models.CASCADE

@@ -5,3 +5,5 @@ class SourceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Source
         fields = ['image']
+
+    # def get_image_url(self):
