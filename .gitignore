@@ -21,3 +21,13 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+
+# backend
+*.pyc
+__pycache__
+db.sqlite3
+.DS_Store
+venv
+.idea
+backend/media
