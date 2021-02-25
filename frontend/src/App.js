@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { MapInteractionCSS } from 'react-map-interaction';
+import Loading from './component/Loading';
 
 import './App.css';
 
@@ -42,7 +43,6 @@ function App() {
   //   promptImg = 'https://picsum.photos/seed/picsum/200/300';
   // }
 
-  console.log('image', currentImage);
   return (
     <div className="App">
       <div className="wrap">
@@ -61,7 +61,7 @@ function App() {
           <div className="containerImg">
             {/* <img src={`${promptImg}`} />
              */}
-            {currentImage && (
+            {currentImage ? (
               <div className="imageWrap">
                 <MapInteractionCSS>
                   <img
@@ -71,6 +71,8 @@ function App() {
                   />
                 </MapInteractionCSS>
               </div>
+            ) : (
+              <Loading />
             )}
           </div>
           <button onClick={() => setChangeVersion(!changeVersion)}>원본</button>
