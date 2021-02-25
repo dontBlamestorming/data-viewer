@@ -28,10 +28,6 @@ def pics_list(request):
 
 
 
-
-
-
-
 '''
 Data.objects.all()
 <QuerySet [<Data: Data object (1)>, <Data: Data object (2)>, <Data: Data object (3)>, <Data: Data object (4)>, <Data: Data object (5)>]>

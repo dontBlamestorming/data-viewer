@@ -1,74 +1,78 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+
+// Styles
 import { MapInteractionCSS } from 'react-map-interaction';
+import './App.css';
+
+// Components
 import Loading from './component/Loading';
 
-import './App.css';
+// Mertiral-ui
+import { List, ListItem } from '@material-ui/core';
 
 function App() {
   /*
-  images == [
-    {
-      id: int,
-      author: str,
-      width: int,
-      height: int,
-      url: url str,
-      download_url: url str,
-    },
-    ...
-  ]
+    images = [
+      {
+        id : int,
+        source : str,
+        valid : str,
+      },
+      ...
+    ]
   */
+
   const [images, setImages] = useState([]);
-  // currentId == int
-  const [currentId, setCurrentId] = useState(null);
-  const [changeVersion, setChangeVersion] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [currendId, setCurrentId] = useState(1);
 
   useEffect(() => {
-    const fetchData = async () => {
+    // error처리 필요할 듯
+    // 성공적으로 result load시 setIsLoaded 할 것
+    const getData = async () => {
       const result = await axios.get('http://localhost:8080/pics/');
-      // setImages(result.data);
-      console.log('result', result);
+      setImages(result.data);
+      setIsLoaded(true);
     };
 
-    fetchData();
-  }, [setImages]);
+    getData();
+  }, []);
 
-  const getImage = (id) => images.find((img) => img.id === id);
-  const currentImage = getImage(currentId);
+  const genPicsList = () => {
+    const list = images.map((image, idx) => {
+      // 추후 django에서 image에 대한 name field 생성 후 front에서 pictues list 이름으로 사용하면 될 듯?
 
-  // let promptImg;
-  // if (!changeVersion) {
-  //   promptImg = currentImage.download_url;
-  // } else {
-  //   promptImg = 'https://picsum.photos/seed/picsum/200/300';
-  // }
+      return (
+        <ListItem key={idx} onClick={() => setCurrentId(image.id)}>
+          {/* 텍스트 사이즈 업 시킬 것 */}
+          {`image-${idx}`}
+        </ListItem>
+      );
+    });
+
+    return list;
+  };
 
   return (
     <div className="App">
       <div className="wrap">
+        {/* Left - list */}
         <div className="containerList">
-          {images.map((item, idx) => (
-            <div key={idx}>
-              <p
-                onClick={() => {
-                  setCurrentId(item.id);
-                }}
-              >{`image-${item.id}`}</p>
-            </div>
-          ))}
+          <List>{genPicsList()}</List>
         </div>
+
+        {/* Right - Picture */}
         <div className="containRight">
           <div className="containerImg">
-            {/* <img src={`${promptImg}`} />
-             */}
-            {currentImage ? (
+            {isLoaded ? (
               <div className="imageWrap">
                 <MapInteractionCSS>
+                  {/* 원본 - SOURCE */}
                   <img
                     className="imageContent"
-                    alt={`image-${currentImage.author}`}
-                    src={`${currentImage.download_url}`}
+                    // alt={`image-${currentImage.author}`}
+                    src={images[`${currendId - 1}`].source}
                   />
                 </MapInteractionCSS>
               </div>
@@ -76,7 +80,24 @@ function App() {
               <Loading />
             )}
           </div>
-          <button onClick={() => setChangeVersion(!changeVersion)}>원본</button>
+
+          <div className="containerImg">
+            {isLoaded ? (
+              <div className="imageWrap">
+                <MapInteractionCSS>
+                  {/* 수정본 - VALID */}
+                  <img
+                    className="imageContent"
+                    // alt={`image-${currentImage.author}`}
+                    src={images[`${currendId - 1}`].valid}
+                  />
+                </MapInteractionCSS>
+              </div>
+            ) : (
+              <Loading />
+            )}
+          </div>
+          {/* <button onClick={() => setChangeVersion(!changeVersion)}>원본</button> */}
         </div>
       </div>
     </div>
