@@ -26,8 +26,9 @@ function App() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const result = await axios.get('https://picsum.photos/v2/list');
-      setImages(result.data);
+      const result = await axios.get('http://localhost:8080/pics/');
+      // setImages(result.data);
+      console.log('result', result);
     };
 
     fetchData();
