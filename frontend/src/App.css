@@ -42,10 +42,10 @@ overflow:scroll;
   align-items: center;
   line-height: 0;
   width : 600px;
-
 }
 .imageWrap
 {
+  /* border : 1px solid lime; */
   /* width:400px; */
 
 }

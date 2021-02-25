@@ -35,12 +35,12 @@ function App() {
   const getImage = (id) => images.find((img) => img.id === id);
   const currentImage = getImage(currentId);
 
-  let promptImg;
-  if (!changeVersion) {
-    // promptImg = currentImage.download_url;
-  } else {
-    promptImg = 'https://picsum.photos/seed/picsum/200/300';
-  }
+  // let promptImg;
+  // if (!changeVersion) {
+  //   promptImg = currentImage.download_url;
+  // } else {
+  //   promptImg = 'https://picsum.photos/seed/picsum/200/300';
+  // }
 
   console.log('image', currentImage);
   return (
@@ -59,7 +59,8 @@ function App() {
         </div>
         <div className="containRight">
           <div className="containerImg">
-            {/* <img src={`${promptImg}`} /> */}
+            {/* <img src={`${promptImg}`} />
+             */}
             {currentImage && (
               <div className="imageWrap">
                 <MapInteractionCSS>
