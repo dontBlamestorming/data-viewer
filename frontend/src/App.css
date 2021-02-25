@@ -44,6 +44,11 @@ overflow:scroll;
   width : 600px;
 
 }
+.imageWrap
+{
+  /* width:400px; */
+
+}
 
 .imageContent{
   width : 100%;
@@ -52,6 +57,9 @@ overflow:scroll;
 
 }
 .containRight > button{
+  display : flex;
+  align-items: center;
+  justify-content: center;
   margin-left:12px;
   width: 50px;
   height: 50px;
