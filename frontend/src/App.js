@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { MapInteractionCSS } from 'react-map-interaction';
+import Loading from './component/Loading';
+
 import './App.css';
 
 function App() {
@@ -19,11 +22,13 @@ function App() {
   const [images, setImages] = useState([]);
   // currentId == int
   const [currentId, setCurrentId] = useState(null);
+  const [changeVersion, setChangeVersion] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
-      const result = await axios.get('https://picsum.photos/v2/list');
-      setImages(result.data);
+      const result = await axios.get('http://localhost:8080/pics/');
+      // setImages(result.data);
+      console.log('result', result);
     };
 
     fetchData();
@@ -31,6 +36,13 @@ function App() {
 
   const getImage = (id) => images.find((img) => img.id === id);
   const currentImage = getImage(currentId);
+
+  // let promptImg;
+  // if (!changeVersion) {
+  //   promptImg = currentImage.download_url;
+  // } else {
+  //   promptImg = 'https://picsum.photos/seed/picsum/200/300';
+  // }
 
   return (
     <div className="App">
@@ -48,17 +60,23 @@ function App() {
         </div>
         <div className="containRight">
           <div className="containerImg">
-            {currentImage && (
-              <div>
-                <img
-                  className="imageContent"
-                  alt={`image-${currentImage.author}`}
-                  src={`${currentImage.download_url}`}
-                />
+            {/* <img src={`${promptImg}`} />
+             */}
+            {currentImage ? (
+              <div className="imageWrap">
+                <MapInteractionCSS>
+                  <img
+                    className="imageContent"
+                    alt={`image-${currentImage.author}`}
+                    src={`${currentImage.download_url}`}
+                  />
+                </MapInteractionCSS>
               </div>
+            ) : (
+              <Loading />
             )}
           </div>
-          <button>dd</button>
+          <button onClick={() => setChangeVersion(!changeVersion)}>원본</button>
         </div>
       </div>
     </div>
