@@ -1,9 +1,8 @@
 from rest_framework import serializers
-from .models import Source
+from .models import Data
 
-class SourceSerializer(serializers.ModelSerializer):
+
+class DataSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Source
-        fields = ['image']
-
-    # def get_image_url(self):
+        model = Data
+        fields = ("id", "source", "valid")
