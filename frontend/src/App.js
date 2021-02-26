@@ -10,6 +10,7 @@ import Loading from './component/Loading';
 
 // Mertiral-ui
 import { List, ListItem } from '@material-ui/core';
+import Button from '@material-ui/core/Button';
 
 function App() {
   /*
@@ -26,6 +27,7 @@ function App() {
   const [images, setImages] = useState([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [currendId, setCurrentId] = useState(1);
+  const [changeVer, setChangeVer] = useState(false);
 
   useEffect(() => {
     // error처리 필요할 듯
@@ -54,6 +56,17 @@ function App() {
     return list;
   };
 
+  const changeImg = () => {
+    if (!changeVer) {
+      return (
+        <img className="imageContent" src={images[currendId - 1].source} />
+      );
+    } else {
+      return <img className="imageContent" src={images[currendId - 1].valid} />;
+    }
+  };
+
+  console.log(currendId, currendId - 1);
   return (
     <div className="App">
       <div className="wrap">
@@ -67,37 +80,20 @@ function App() {
           <div className="containerImg">
             {isLoaded ? (
               <div className="imageWrap">
-                <MapInteractionCSS>
-                  {/* 원본 - SOURCE */}
-                  <img
-                    className="imageContent"
-                    // alt={`image-${currentImage.author}`}
-                    src={images[`${currendId - 1}`].source}
-                  />
-                </MapInteractionCSS>
+                <MapInteractionCSS>{changeImg()}</MapInteractionCSS>
               </div>
             ) : (
               <Loading />
             )}
           </div>
 
-          <div className="containerImg">
-            {isLoaded ? (
-              <div className="imageWrap">
-                <MapInteractionCSS>
-                  {/* 수정본 - VALID */}
-                  <img
-                    className="imageContent"
-                    // alt={`image-${currentImage.author}`}
-                    src={images[`${currendId - 1}`].valid}
-                  />
-                </MapInteractionCSS>
-              </div>
-            ) : (
-              <Loading />
-            )}
-          </div>
-          {/* <button onClick={() => setChangeVersion(!changeVersion)}>원본</button> */}
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => setChangeVer(!changeVer)}
+          >
+            원본
+          </Button>
         </div>
       </div>
     </div>
