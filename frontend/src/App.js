@@ -66,7 +66,6 @@ function App() {
     }
   };
 
-  console.log(currendId, currendId - 1);
   return (
     <div className="App">
       <div className="wrap">
