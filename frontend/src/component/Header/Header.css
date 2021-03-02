@@ -1,0 +1,23 @@
+.Header{
+    position:fixed;
+    top: 0;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    width:100vw;
+    height :90px;
+    border-bottom: 2px solid lightgrey;
+
+    z-index: 99;
+}
+.Wrap{
+    display : flex;   
+    align-items: center;
+    justify-content: flex-end;
+    height:100%;
+}
+
+.LoginBttn{
+    width  :100px;
+
+}
