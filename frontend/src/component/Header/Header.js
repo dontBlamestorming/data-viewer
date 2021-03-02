@@ -6,32 +6,36 @@ import Button from '@material-ui/core/Button';
 
 const Header = () => {
   const [user, setUser] = useState('');
-  const Token = localStorage.getItem('usertoken');
 
+  const [token, setToken] = useState(localStorage.getItem('usertoken'));
   const logout = () => {
     localStorage.clear();
+    setToken(false);
   };
   return (
     <div className="Header">
       <div className="Wrap">
-        <div className="LoginBttn">
-          {!Token ? (
-            <Link to="/login" style={{ textDecoration: 'none' }}>
-              <Button variant="outlined" color="primary">
-                Login
-              </Button>
-            </Link>
-          ) : (
-            <Link
-              to="/login"
-              style={{ textDecoration: 'none' }}
-              onClick={logout}
-            >
-              <Button variant="outlined" color="primary">
-                Logout
-              </Button>
-            </Link>
-          )}
+        <div className="HeaderRight">
+          <p>사용자이르음</p>
+          <div className="LoginBttn">
+            {!token ? (
+              <Link to="/login" style={{ textDecoration: 'none' }}>
+                <Button variant="outlined" color="primary">
+                  Login
+                </Button>
+              </Link>
+            ) : (
+              <Link
+                to="/login"
+                style={{ textDecoration: 'none' }}
+                onClick={logout}
+              >
+                <Button variant="outlined" color="primary">
+                  Logout
+                </Button>
+              </Link>
+            )}
+          </div>
         </div>
       </div>
     </div>

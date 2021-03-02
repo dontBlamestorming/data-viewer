@@ -22,6 +22,7 @@ const LogIn = () => {
       })
       .then((response) => {
         if (response.data.token) {
+          console.log('dd', response);
           localStorage.setItem(
             'usertoken',
             JSON.stringify(response.data.token),

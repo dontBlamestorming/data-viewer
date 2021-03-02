@@ -17,6 +17,17 @@
     height:100%;
 }
 
+.HeaderRight{
+    display : flex;
+    justify-content: space-between;
+    align-items: center;
+    padding : 5px;
+    width : 300px;
+}
+.HeaderRight >p {
+    font-weight: 600;
+    color: darkslateblue;
+}
 .LoginBttn{
     width  :100px;
 

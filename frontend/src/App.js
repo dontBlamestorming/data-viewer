@@ -142,6 +142,7 @@ function App() {
             {isLoaded ? (
               <div className="imageWrap">
                 <MapInteractionCSS
+
                 // value={state}
                 // onChange={() => {
                 //   setState();
