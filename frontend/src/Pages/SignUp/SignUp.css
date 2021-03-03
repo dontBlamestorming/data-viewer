@@ -1,0 +1,59 @@
+.signup-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 110px;
+
+}
+.input-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-top: 40px;
+    padding: 0 12px;
+    max-width: 300px;
+    width: 100%;
+  }
+
+  .signup-title-box {
+    h1 {
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 30px;
+    }
+  }
+
+  .inputFirst {
+    width: 100%;
+    height: 50px;
+    margin-bottom: 20px;
+    border: 1px solid #e8e4e1;
+    border-radius: 3px;
+    padding: 5px;
+    font-size: 0.875em;
+  }
+
+  .inputLast {
+    width: 100%;
+    height: 50px;
+    margin-bottom: 20px;
+    border: 1px solid #e8e4e1;
+    border-radius: 3px;
+    padding: 5px;
+    font-size: 0.875em;
+  }
+.signUpBttn {
+    display : flex;
+    justify-content: center;
+    align-items: center;
+    padding : 5px;
+    width:100%;
+    height:20px;
+
+}
+.firstName, .lastName{
+    font-size: 16px;
+    font-weight: 800;
+    margin-bottom: 10px;
+}
