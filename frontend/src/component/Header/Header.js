@@ -16,7 +16,7 @@ const Header = () => {
     <div className="Header">
       <div className="Wrap">
         <div className="HeaderRight">
-          <p>사용자이르음</p>
+          <p>사용자</p>
           <div className="LoginBttn">
             {!token ? (
               <Link to="/login" style={{ textDecoration: 'none' }}>

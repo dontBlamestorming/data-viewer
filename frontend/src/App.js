@@ -2,11 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 
 // Styles
-import { MapInteractionCSS } from 'react-map-interaction';
+import { MapInteractionCSS, MapInteraction } from 'react-map-interaction';
 import './App.css';
 
 // Components
-import Loading from './component/Loading';
+import Loading from './component/Loading/Loading';
 
 // Mertiral-ui
 import { List, ListItem } from '@material-ui/core';
@@ -23,31 +23,11 @@ function App() {
       ...
     ]
   */
-  const initialState = {
-    zoom: {
-      container: {
-        width: 0,
-        height: 0,
-      },
-      image: {
-        width: 0,
-        height: 0,
-      },
-      minScale: 1,
-      // 아래는 MapInteraction props
-      scale: 1,
-      translation: {
-        x: 0,
-        y: 0,
-      },
-    },
-  };
 
   const [images, setImages] = useState([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [currendId, setCurrentId] = useState(1);
   const [changeVer, setChangeVer] = useState(false);
-  const [state, setState] = useState(initialState);
 
   useEffect(() => {
     // error처리 필요할 듯
@@ -95,39 +75,6 @@ function App() {
       );
     }
   };
-  const zoomConRef = useRef(null);
-
-  const getWindow = (imageWidth, imageHeight) => {
-    const imageRatio = imageHeight / imageWidth;
-    const conWid = zoomConRef.current.clientWidth;
-    const conHei = zoomConRef.current.clientHeight;
-
-    let width = Math.min(imageWidth, conWid);
-    let height = width * imageRatio;
-    if (height > conHei) {
-      width = conHei / imageRatio;
-      height = conHei;
-    }
-    const scale = width / imageWidth;
-
-    return {
-      container: {
-        width: conWid,
-        height: conHei,
-      },
-      image: {
-        width: imageWidth,
-        height: imageHeight,
-        scale,
-      },
-      scale,
-      translation: {
-        x: (conWid - width) / 2,
-        y: (conHei - height) / 2,
-      },
-    };
-  };
-
   return (
     <div className="App">
       <div className="wrap">
@@ -142,11 +89,7 @@ function App() {
             {isLoaded ? (
               <div className="imageWrap">
                 <MapInteractionCSS
-
-                // value={state}
-                // onChange={() => {
-                //   setState();
-                // }}
+                // value={state} onChange={onChangeZoom}
                 >
                   {changeImg()}
                 </MapInteractionCSS>
@@ -155,14 +98,15 @@ function App() {
               <Loading />
             )}
           </div>
-
-          <Button
-            variant="outlined"
-            color="primary"
-            onClick={() => setChangeVer(!changeVer)}
-          >
-            원본
-          </Button>
+          <div className="preview">
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={() => setChangeVer(!changeVer)}
+            >
+              button
+            </Button>
+          </div>
         </div>
       </div>
     </div>

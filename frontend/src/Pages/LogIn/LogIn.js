@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useHistory } from 'react-router-dom';
+import { useHistory, Redirect } from 'react-router-dom';
 
 import './LogIn.css';
 import Button from '@material-ui/core/Button';
@@ -22,7 +22,6 @@ const LogIn = () => {
       })
       .then((response) => {
         if (response.data.token) {
-          console.log('dd', response);
           localStorage.setItem(
             'usertoken',
             JSON.stringify(response.data.token),
