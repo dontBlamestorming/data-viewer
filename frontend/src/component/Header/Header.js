@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import Logo from '../../Image/logo.png';
 
 import './Header.css';
 import Button from '@material-ui/core/Button';
@@ -15,6 +16,9 @@ const Header = () => {
   return (
     <div className="Header">
       <div className="Wrap">
+        <Link to="/main">
+          <img className="Logo" alt="logo" src={Logo} />
+        </Link>
         <div className="HeaderRight">
           <p>사용자</p>
           <div className="LoginBttn">

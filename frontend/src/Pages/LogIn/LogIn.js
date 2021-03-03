@@ -26,7 +26,7 @@ const LogIn = () => {
             'usertoken',
             JSON.stringify(response.data.token),
           );
-          history.push('/');
+          history.push('/main');
         }
 
         return response.data;
