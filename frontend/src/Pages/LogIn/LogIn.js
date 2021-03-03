@@ -27,9 +27,10 @@ const LogIn = () => {
             JSON.stringify(response.data.token),
           );
           history.push('/main');
+          window.location.reload();
         }
 
-        return response.data;
+        // return response.data;
       });
   };
 

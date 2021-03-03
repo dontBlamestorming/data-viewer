@@ -23,17 +23,13 @@ const Header = () => {
           <p>사용자</p>
           <div className="LoginBttn">
             {!token ? (
-              <Link to="/login" style={{ textDecoration: 'none' }}>
+              <Link to="/" style={{ textDecoration: 'none' }}>
                 <Button variant="outlined" color="primary">
                   Login
                 </Button>
               </Link>
             ) : (
-              <Link
-                to="/login"
-                style={{ textDecoration: 'none' }}
-                onClick={logout}
-              >
+              <Link to="/" style={{ textDecoration: 'none' }} onClick={logout}>
                 <Button variant="outlined" color="primary">
                   Logout
                 </Button>
