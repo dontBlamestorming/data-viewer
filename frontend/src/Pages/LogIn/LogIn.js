@@ -29,8 +29,6 @@ const LogIn = () => {
           history.push('/main');
           window.location.reload();
         }
-
-        // return response.data;
       });
   };
 
@@ -50,7 +48,7 @@ const LogIn = () => {
         />
         <div className="lastName">pw</div>
         <input
-          type="text"
+          type="password"
           className="inputLast"
           placeholder="password"
           value={password}

@@ -3,6 +3,7 @@ import axios from 'axios';
 
 // Styles
 import { MapInteractionCSS, MapInteraction } from 'react-map-interaction';
+// import { Magnifier } from 'react-image-magnifiers';
 import './App.css';
 
 // Components
@@ -90,6 +91,7 @@ function App() {
             {isLoaded ? (
               <div className="imageWrap">
                 <MapInteractionCSS
+
                 // value={state} onChange={onChangeZoom}
                 >
                   {changeImg()}
@@ -105,7 +107,7 @@ function App() {
               color="primary"
               onClick={() => setChangeVer(!changeVer)}
             >
-              button
+              x - y{' '}
             </Button>
           </div>
         </div>
