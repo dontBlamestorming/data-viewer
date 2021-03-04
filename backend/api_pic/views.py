@@ -1,37 +1,22 @@
-from django.shortcuts import get_object_or_404
-
-# Generic View
-from django.views.generic.list import ListView
-
 # Model
-from .models import Data
+from .models import Image
+
+# Drf
+from rest_framework.views import APIView
 
 # serializer
-from .serializers import DataSerializer
-from rest_framework.decorators import api_view
+from .serializers import ImageSerializer
 from rest_framework.response import Response
 
 
-@api_view(["GET"])
-def pics_list(request):
-    datas = Data.objects.all()
-    serializer = DataSerializer(datas, many=True)
+class ImageList(APIView):
+    def get(self, request):
+        queryset = Image.objects.all()
+        serializer = ImageSerializer(queryset, many=True)
 
-    return Response(serializer.data)
+        return Response(serializer.data)
 
-'''
-    @api_view(["GET"])
-    class PicsList(ListView):
-        model = Data    # same as 'Data.objects.all()'
-        serializer = DataSerializer(model, many=True)
-'''
-
-
-
-'''
-Data.objects.all()
-<QuerySet [<Data: Data object (1)>, <Data: Data object (2)>, <Data: Data object (3)>, <Data: Data object (4)>, <Data: Data object (5)>]>
-
-Data.objects.get(pk=1)
-
-'''
+    """
+    def post(self, request):
+        return Response("When access by POST method")
+    """

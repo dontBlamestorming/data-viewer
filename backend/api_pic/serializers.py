@@ -1,8 +1,13 @@
 from rest_framework import serializers
-from .models import Data
+from .models import Image
 
 
-class DataSerializer(serializers.ModelSerializer):
+class ImageSerializer(serializers.ModelSerializer):
+
+    source = serializers.ImageField(source="source_image.img")
+    valid = serializers.ImageField(source="valid_image.img")
+    fake = serializers.ImageField(source="fake_image.img")
+
     class Meta:
-        model = Data
-        fields = ("id", "source", "valid")
+        model = Image
+        fields = ["id", "source", "valid", "fake"]
