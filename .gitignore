@@ -24,6 +24,7 @@ yarn-error.log*
 
 
 # backend
+.python-version
 *.pyc
 __pycache__
 db.sqlite3
@@ -31,3 +32,5 @@ db.sqlite3
 venv
 .idea
 backend/media
+backend/data_root/*
+!backend/data_root/DATA_SHOULD_BE_HERE
