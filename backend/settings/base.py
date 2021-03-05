@@ -36,7 +36,7 @@ INSTALLED_APPS = [
     # libraries
     "rest_framework",
     # apps
-    "api_pic",
+    "core",
     "account",
     # for local dev
     "corsheaders",
@@ -63,10 +63,10 @@ MIDDLEWARE = [
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ORIGIN_WHITELIST = (
     "http://localhost:3000",
-    "http://localhost:8080",
+    "http://localhost:8000",
 )
 
-ROOT_URLCONF = "data_viewer.urls"
+ROOT_URLCONF = "urls"
 
 TEMPLATES = [
     {
@@ -84,7 +84,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "data_viewer.wsgi.application"
+WSGI_APPLICATION = "wsgi.application"
 
 
 # Database
@@ -93,10 +93,13 @@ WSGI_APPLICATION = "data_viewer.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.path.join(BASE_DIR, "database/db.sqlite3"),
+        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
     }
 }
 
+
+# Custom user model
+AUTH_USER_MODEL = "account.User"
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
@@ -147,9 +150,6 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
 }
-
-# Custom user model
-AUTH_USER_MODEL = "account.User"
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
