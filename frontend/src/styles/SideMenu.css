@@ -1,0 +1,82 @@
+ul, ol, li {
+    list-style: none; 
+    margin:0;
+    padding:0;
+}
+
+
+#sidebar {
+    width: 300px;
+    height: 100vh;
+    
+    /* border: 1px solid red */
+}
+
+.container {
+    
+    padding-left: 3rem;
+}
+
+.container .directory {
+    
+    /* display: flex; */
+    /* border: 1px solid green; */
+
+}
+
+.container .content {
+    
+    
+}
+
+.container .content .directory {
+    
+    display: flex;
+}
+
+.container .content .file {
+    /* padding-left: 1rem; */
+    display: flex;
+}
+
+.icon {
+    padding-top: 0.1rem;
+    padding-right: 5px;
+    font-size: 1rem;
+}
+
+.file {
+    display: flex;
+}
+
+.not {
+    display: flex;
+}
+
+.second {
+    padding-left: 1rem;
+}
+
+/*
+
+    <div id="sidebar">
+        <div className="container">
+            <ul>
+                <div className="directory">
+                    <li> - dir(1)
+                    </li> 
+                    <ul>
+                        <li> - dir(2)
+                        </li> 
+                        <ul>
+                            ...                    
+                        </ul>
+                    </ul>                
+                </div>
+               
+
+                <li></li> - file
+            </ul>
+        </div>
+    </div>
+*/

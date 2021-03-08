@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import Logo from '../../Image/logo.png';
+import Logo from '../assets/logo.png';
 
-import './Header.css';
 import Button from '@material-ui/core/Button';
+import '../styles/Header.css';
 
 const Header = () => {
   const [user, setUser] = useState('');
