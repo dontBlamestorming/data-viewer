@@ -7,11 +7,13 @@ import './styles/App.css';
 
 // componenet
 import AuthRoute from './components/AuthRoute';
-import SideMenu from './components/SideMenu';
+// import SideMenu from './components/SideMenu';
 
 // pages
 import LoginForm from './pages/LoginForm';
 import Viewer from './pages/Viewer';
+
+import Test from './pages/Test';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -25,7 +27,8 @@ function App() {
         exact
         path="/"
         render={(props) => (
-          <SideMenu />
+          <Test />
+          // <SideMenu />
           // <Viewer />
           // <LoginForm
           //   authenticated={authenticated}
