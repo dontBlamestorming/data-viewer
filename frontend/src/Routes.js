@@ -4,15 +4,17 @@ import App from './App';
 import Header from './component/Header/Header';
 import SignUp from './Pages/SignUp/SignUp';
 import LogIn from './Pages/LogIn/LogIn';
+import Test from './Pages/Test';
 
 const Routes = () => {
   return (
     <Router>
-      <Header />
+      {/* <Header /> */}
       <Switch>
         <Route exact path="/main" component={App} />
         <Route exact path="/signup" component={SignUp} />
         <Route exact path="/" component={LogIn} />
+        <Route exact path="/test" component={Test} />
       </Switch>
     </Router>
   );
