@@ -155,16 +155,19 @@ const SideBar = () => {
     <>
       <Header />
       <div id="sidebar">
+        <h1>Side Bar</h1>
         <div className="container">
-          <ul>
-            {state.map((item) => {
-              return item.isDir ? (
-                <Directory path={item} onClick={onClick} />
-              ) : (
-                <File path={item} />
-              );
-            })}
-          </ul>
+          <div className="content">
+            <ul>
+              {state.map((item) => {
+                return item.isDir ? (
+                  <Directory path={item} onClick={onClick} />
+                ) : (
+                  <File path={item} />
+                );
+              })}
+            </ul>
+          </div>
         </div>
       </div>
     </>
@@ -173,27 +176,30 @@ const SideBar = () => {
 
 const Directory = ({ path, onClick }) => {
   return (
-    <div className="content">
+    <>
       <div className="directory" onClick={() => onClick(path)}>
         <FontAwesomeIcon
           className="icon"
           icon={path.open ? faChevronDown : faChevronRight}
         />
-
         <li>{path.name}</li>
       </div>
       {path.open && (
-        <ul className="second">
-          {path.subPath.map((item) => {
-            return item.isDir ? (
-              <Directory path={item} onClick={onClick} />
-            ) : (
-              <File path={item} />
-            );
-          })}
+        <ul className="directory__sub">
+          {path.subPath
+            .sort((a, b) => {
+              return b.isDir - a.isDir;
+            })
+            .map((item) => {
+              return item.isDir ? (
+                <Directory path={item} onClick={onClick} />
+              ) : (
+                <File path={item} />
+              );
+            })}
         </ul>
       )}
-    </div>
+    </>
   );
 };
 
