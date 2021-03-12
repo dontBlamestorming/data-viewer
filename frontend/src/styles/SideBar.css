@@ -1,0 +1,57 @@
+
+/* list 태그 초기화 */
+ul, ol, li {
+    list-style: none; 
+    margin:0;
+    padding:0;
+}
+
+#sidebar {
+    width: 300px;
+    height: 100vh;
+}
+
+/* .container {
+    
+} */
+
+.container .content{
+    padding-left: 30px;
+    cursor: pointer;
+}
+
+.container .content .active {
+    background: #000;
+    color: aliceblue;
+}
+
+.container .content .directory {
+    display: flex;
+    /* background: #000;
+    color: aliceblue; */
+}
+
+.container .content .directory:hover {
+    background: #000;
+    color: aliceblue;
+}
+
+.container .content .directory__sub {
+    padding-left: 1rem;
+}
+
+.container .content .file {
+    display: flex;
+}
+
+.container .content .file:hover{
+    display: flex;
+    background: #000;
+    color: aliceblue;
+}
+
+.icon {
+    padding-top: 0.2rem;
+    padding-right: 5px;
+    font-size: 1rem;
+}
