@@ -21,7 +21,7 @@ def file_view(request, path):
     if target_path.is_dir():
         res = [
             {
-                "path": str(p.relative_to(data_root)),
+                "path": '/' + str(p.relative_to(data_root)),
                 "size": p.stat().st_size,
                 "isDir": p.is_dir(),
             }

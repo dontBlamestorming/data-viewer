@@ -1,32 +1,23 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 import { Route, Switch } from 'react-router-dom';
 
 // Styles
 import './styles/App.css';
 
-// componenet
-import AuthRoute from './components/AuthRoute';
-import SideMenu from './components/SideMenu';
-
 // pages
-import LoginForm from './pages/LoginForm';
 import Viewer from './pages/Viewer';
 
 function App() {
-  const [user, setUser] = useState(null);
-  const authenticated = user !== null;
-
-  // const processLogin = (user) => setUser(user);
-
   return (
     <Switch>
       <Route
         exact
         path="/"
         render={(props) => (
-          <SideMenu />
-          // <Viewer />
+          <>
+            <Viewer />
+          </>
           // <LoginForm
           //   authenticated={authenticated}
           //   setUser={setUser}

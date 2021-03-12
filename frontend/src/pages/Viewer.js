@@ -1,262 +1,122 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-
-// Styles
-import '../styles/viewer.css';
-import '../styles/App.css';
-import { MapInteractionCSS, MapInteraction } from 'react-map-interaction';
-// import { Magnifier } from 'react-image-magnifiers';
-import styled from 'styled-components';
-
-// axios
-import axios from 'axios';
+import React, { useState, useEffect, useCallback } from 'react';
 
 // Mertiral-ui
-import { List, ListItem } from '@material-ui/core';
 import Button from '@material-ui/core/Button';
 
-// pages
-import Header from './Header';
+// Styles
+import '../styles/Viewer.css';
 
 // Components
-import Loading from '../components/Loading';
-import SideMenu from '../components/SideMenu';
+import SideBar from '../components/SideBar';
 
 function Viewer() {
-  const initialState = {
-    zoom: {
-      container: {
-        width: 0,
-        height: 0,
-      },
-      image: {
-        width: 0,
-        height: 0,
-      },
-      minScale: 1,
-      scale: 1,
-      translation: {
-        x: 0,
-        y: 0,
-      },
-    },
-  };
-
-  const [state, setState] = useState(initialState);
+  const baseURL = '/api/browse';
   const [images, setImages] = useState([]);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [currendId, setCurrentId] = useState(1);
-  const [changeVer, setChangeVer] = useState(false);
+  const [currentId, setCurrentId] = useState(0);
 
-  const zoomConRef = useRef(null);
-  const imgConRef = useRef(null);
-
-  const getInitZoomState = useCallback(() => {
-    const imageWidth = imgConRef.current.clientWidth;
-    const imageHeight = imgConRef.current.clientHeight;
-
-    const imageRatio = imageHeight / imageWidth;
-
-    const conWidth = zoomConRef.current.clientWidth;
-    const conHeight = zoomConRef.current.clientHeight;
-
-    let width = Math.min(imageWidth, conWidth);
-    let height = width * imageRatio;
-
-    if (height > conHeight) {
-      width = conHeight / imageRatio;
-      height = conHeight;
+  const increaseCurrentId = useCallback(() => {
+    if (images.length > 0) {
+      setCurrentId(Math.min(currentId + 1, images.length - 1));
     }
+  }, [currentId, images]);
 
-    const scale = width / imageWidth;
-
-    return {
-      container: {
-        width: conWidth,
-        height: conHeight,
-      },
-      image: {
-        width: imageWidth,
-        height: imageHeight,
-        scale,
-      },
-      scale,
-      translation: {
-        x: (conWidth - width) / 2,
-        y: (conHeight - height) / 2,
-      },
-    };
-  }, [imgConRef, zoomConRef]);
-
-  const onChangeZoom = useCallback(
-    ({ scale, translation }) => {
-      const newScale = Math.max(scale, state.zoom.image.scale);
-      const xDiff =
-        state.zoom.container.width - state.zoom.image.width * newScale;
-      const yDiff =
-        state.zoom.container.height - state.zoom.image.height * newScale;
-
-      const newState = {
-        ...state,
-        zoom: {
-          ...state.zoom,
-          scale: newScale,
-          translation: {
-            x:
-              xDiff < 0
-                ? Math.max(xDiff, Math.min(0, translation.x))
-                : xDiff / 2,
-            y:
-              yDiff < 0
-                ? Math.max(yDiff, Math.min(0, translation.y))
-                : yDiff / 2,
-          },
-        },
-      };
-      setState(newState);
-      console.log(
-        newState.zoom.scale,
-        newState.zoom.translation,
-        newState.zoom,
-      );
-    },
-    [state, setState],
-  );
+  const decreaseCurrentId = useCallback(() => {
+    if (images.length > 0) {
+      setCurrentId(Math.max(0, currentId - 1));
+    }
+  }, [currentId, images]);
 
   useEffect(() => {
-    // error처리 필요할 듯
-    // 성공적으로 result load시 setIsLoaded 할 것
-    // auth.js로 보낼 것
-    const getData = async () => {
-      const result = await axios.get('http://localhost:8000/pics/');
-      setImages(result.data);
-      setIsLoaded(true);
-      const zoom = getInitZoomState();
-      setState({
-        zoom,
-      });
+    const handleKeyDown = (e) => {
+      switch (e.key) {
+        case 'ArrowRight':
+          increaseCurrentId();
+          break;
+
+        case 'ArrowLeft':
+          decreaseCurrentId();
+          break;
+
+        case 'ArrowDown':
+        case 'ArrowUp':
+        case ' ':
+          e.preventDefault();
+          break;
+
+        default:
+          return;
+      }
     };
 
-    getData();
-  }, []);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [increaseCurrentId, decreaseCurrentId]);
 
-  const genPicsList = () => {
-    const list = images.map((image, idx) => {
-      return (
-        <ListItem key={idx} onClick={() => setCurrentId(idx + 1)}>
-          {/* 텍스트 사이즈 업 시킬 것 */}
-          {`image-${idx + 1}`}
-        </ListItem>
-      );
+  const handleActiveFiles = (dirEntry) => {
+    /* 
+      dirEntry = [
+        {
+          path: str,
+          size: int,
+          isDir: boolean,
+          isActive : true
+        }
+      ]
+    */
+
+    let imagesPaths = [];
+    dirEntry.forEach((item) => {
+      const splitted = item.path.split('.');
+      const extention = splitted[splitted.length - 1];
+
+      if (extention === 'png') {
+        imagesPaths.push(item.path);
+      } else {
+        console.log('png파일이 아닙니다.');
+      }
     });
 
-    return list;
+    setImages(imagesPaths);
   };
 
-  // const changeImg = () => {
-  //   if (!changeVer) {
-  //     return (
-  //       <img
-  //         className="imageContent"
-  //         alt="originalImage"
-  //         src={images[currendId - 1].source}
-  //       />
-  //     );
-  //   } else {
-  //     return (
-  //       <img
-  //         className="imageContent"
-  //         alt="retouchedImage"
-  //         src={images[currendId - 1].valid}
-  //       />
-  //     );
-  //   }
-  // };
+  const renderLoadedImages = (currentId) => {
+    if (images.length > 0) {
+      return <img alt="이미지" src={`${baseURL}${images[currentId]}`} />;
+    }
+  };
 
   return (
-    <div className="App">
-      {/* header */}
-      <Header />
-      {/* <SideMenu /> */}
+    <div id="viewer">
       <div className="wrap">
-        {/* Left - list */}
-        <div className="containerList">
-          <List>{genPicsList()}</List>
+        {/* Sidebar */}
+        <div className="images__tree">
+          <SideBar handleActiveFiles={handleActiveFiles} baseURL={baseURL} />
         </div>
 
-        {/* Right - Picture */}
-        <div className="containRight">
-          <div className="containerImg">
-            {isLoaded ? (
-              <div className="imageWrap" ref={zoomConRef}>
-                <MapInteraction value={state.zoom} onChange={onChangeZoom}>
-                  {({ translation, scale }) => (
-                    <Container>
-                      <ImageWrapper
-                        translation={{
-                          x: translation.x,
-                          y: translation.y,
-                        }}
-                        scale={scale}
-                      >
-                        <img
-                          ref={imgConRef}
-                          // style={{ position: 'absolute' }}
-                          className="imageContent"
-                          alt="originalImage"
-                          src={images[currendId - 1].source}
-                        />
-                      </ImageWrapper>
-                    </Container>
-                  )}
-                </MapInteraction>
-              </div>
-            ) : (
-              <Loading />
-            )}
-          </div>
-          {/* Right - Button */}
-          <div className="preview">
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={() => setChangeVer(!changeVer)}
-            >
-              x - y{' '}
-            </Button>
-          </div>
+        {/* Image space */}
+        <div className="images__viewer">
+          {images.length > 0 && (
+            <>
+              <div className="imageWrap">{renderLoadedImages(currentId)}</div>
+
+              <Button className="Btn" onClick={() => decreaseCurrentId()}>
+                decrease ID
+              </Button>
+
+              <Button className="Btn" onClick={() => increaseCurrentId()}>
+                increase ID
+              </Button>
+            </>
+          )}
+        </div>
+
+        {/* tools space */}
+        <div className="images__tools">
+          <h1>Tools space</h1>
         </div>
       </div>
     </div>
   );
 }
-
-const Container = styled.div`
-  width: 100%;
-  height: 100%;
-  position: relative;
-  overflow: hidden;
-
-  cursor: grab;
-  touch-action: none;
-  -ms-touch-action: none;
-
-  user-select: none;
-  -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-
-  -webkit-touch-callout: none;
-`;
-
-const ImageWrapper = styled.div.attrs((props) => ({
-  style: {
-    transform: `translate(${props.translation.x}px, ${props.translation.y}px) scale(${props.scale})`,
-  },
-}))`
-  display: inline-block;
-  transformorigin: '0 0 ';
-  position: absolute;
-`;
 
 export default Viewer;
