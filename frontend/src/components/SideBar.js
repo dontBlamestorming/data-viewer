@@ -172,7 +172,7 @@ const Directory = ({ dirEntry, onClickDir, onClickFile }) => {
 const File = ({ dirEntry, onClickFile, index }) => {
   return (
     <div
-      className={`file`}
+      className={`file `}
       onClick={() => {
         onClickFile(dirEntry, index);
       }}
