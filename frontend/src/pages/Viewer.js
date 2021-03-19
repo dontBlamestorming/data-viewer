@@ -1,46 +1,53 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
-// Mertiral-ui
 import Button from '@material-ui/core/Button';
 
-// Styles
 import '../styles/Viewer.css';
 
-// Components
 import SideBar from '../components/SideBar';
+import Tools from '../components/Tools';
 
 function Viewer() {
   const baseURL = '/api/browse';
-  const [images, setImages] = useState([]);
-  const [currentId, setCurrentId] = useState(0);
+  const [mode, setMode] = useState('');
+  // console.log('Mode', mode);
+  const [activeFiles, setActiveFiles] = useState([]);
+  const [currentIdx, setCurrentIdx] = useState(
+    activeFiles.length ? activeFiles.length - 1 : 0,
+  );
+  const [anchorIdx, setAnchorIdx] = useState(0);
 
   const increaseCurrentId = useCallback(() => {
-    if (images.length > 0) {
-      setCurrentId(Math.min(currentId + 1, images.length - 1));
+    if (activeFiles.length > 0) {
+      setCurrentIdx(Math.min(currentIdx + 1, activeFiles.length - 1));
     }
-  }, [currentId, images]);
+  }, [currentIdx, activeFiles]);
 
   const decreaseCurrentId = useCallback(() => {
-    if (images.length > 0) {
-      setCurrentId(Math.max(0, currentId - 1));
+    if (activeFiles.length > 0) {
+      setCurrentIdx(Math.max(0, currentIdx - 1));
     }
-  }, [currentId, images]);
+  }, [currentIdx, activeFiles]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
       switch (e.key) {
         case 'ArrowRight':
+        case 'ArrowDown':
+          e.preventDefault();
           increaseCurrentId();
           break;
 
         case 'ArrowLeft':
+        case 'ArrowUp':
+          e.preventDefault();
           decreaseCurrentId();
           break;
 
-        case 'ArrowDown':
-        case 'ArrowUp':
         case ' ':
           e.preventDefault();
+          setAnchorIdx(currentIdx);
+          setCurrentIdx(0);
           break;
 
         default:
@@ -48,11 +55,22 @@ function Viewer() {
       }
     };
 
+    const handleKeyUp = (e) => {
+      if (e.key === ' ') {
+        e.preventDefault();
+        setCurrentIdx(anchorIdx);
+      }
+    };
+
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
   }, [increaseCurrentId, decreaseCurrentId]);
 
-  const handleActiveFiles = (dirEntry) => {
+  const onActiveImageChanged = (dirEntry) => {
     /* 
       dirEntry = [
         {
@@ -61,27 +79,26 @@ function Viewer() {
           isDir: boolean,
           isActive : true
         }
-      ]
     */
 
-    let imagesPaths = [];
-    dirEntry.forEach((item) => {
-      const splitted = item.path.split('.');
-      const extention = splitted[splitted.length - 1];
+    const splitted = dirEntry.path.split('.');
+    const extention = splitted[splitted.length - 1];
+    if (extention !== 'png') return;
 
-      if (extention === 'png') {
-        imagesPaths.push(item.path);
-      } else {
-        console.log('png파일이 아닙니다.');
-      }
-    });
+    switch (mode) {
+      case 'Tools':
+        if (dirEntry.isActive === true) {
+          setActiveFiles([...activeFiles, dirEntry]);
+        } else {
+          const images = activeFiles
+            .concat(dirEntry)
+            .filter((image) => image.isActive === true);
+          setActiveFiles(images);
+        }
+        break;
 
-    setImages(imagesPaths);
-  };
-
-  const renderLoadedImages = (currentId) => {
-    if (images.length > 0) {
-      return <img alt="이미지" src={`${baseURL}${images[currentId]}`} />;
+      default:
+        setActiveFiles([dirEntry]);
     }
   };
 
@@ -89,31 +106,44 @@ function Viewer() {
     <div id="viewer">
       <div className="wrap">
         {/* Sidebar */}
+
         <div className="images__tree">
-          <SideBar handleActiveFiles={handleActiveFiles} baseURL={baseURL} />
+          <Button onClick={() => setMode(mode !== 'Tools' && 'Tools')}>
+            Change Mode
+          </Button>
+          <SideBar
+            onActiveImageChanged={onActiveImageChanged}
+            baseURL={baseURL}
+          />
         </div>
 
         {/* Image space */}
         <div className="images__viewer">
-          {images.length > 0 && (
-            <>
-              <div className="imageWrap">{renderLoadedImages(currentId)}</div>
-
-              <Button className="Btn" onClick={() => decreaseCurrentId()}>
-                decrease ID
-              </Button>
-
-              <Button className="Btn" onClick={() => increaseCurrentId()}>
-                increase ID
-              </Button>
-            </>
+          {activeFiles.length > 0 && (
+            <div className="imageWrap">
+              <>
+                {activeFiles.length > 0 && (
+                  <img
+                    alt="이미지"
+                    src={`${baseURL}${activeFiles[currentIdx].path}`}
+                  />
+                )}
+              </>
+            </div>
           )}
         </div>
 
         {/* tools space */}
-        <div className="images__tools">
-          <h1>Tools space</h1>
-        </div>
+        {mode === 'Tools' && (
+          <div className="images__tools">
+            <Tools
+              activeFiles={activeFiles}
+              setActiveFiles={setActiveFiles}
+              currentIdx={currentIdx}
+              setCurrentIdx={setCurrentIdx}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

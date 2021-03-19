@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
 
-// fontawesome
+import axios from 'axios';
+import Button from '@material-ui/core/Button';
+
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faChevronRight,
@@ -9,10 +10,9 @@ import {
   faImage,
 } from '@fortawesome/free-solid-svg-icons';
 
-// style
 import '../styles/SideBar.css';
 
-const SideBar = ({ handleActiveFiles, baseURL }) => {
+const SideBar = ({ onActiveImageChanged, baseURL }) => {
   /*
     state ==
       {
@@ -30,56 +30,54 @@ const SideBar = ({ handleActiveFiles, baseURL }) => {
   */
   const [state, setState] = useState({
     dirEntries: [],
+    currentDirEntry: undefined,
+    currentIdx: undefined,
   });
-
+  /*
+    useEffect(() => {
+      const handleKeyDown = (e) => {
+        switch (e.key) {
+          case 'ArrowUp':
+            e.preventDefault();
+            onClickFile();
+            break;
+        }
+      };
+    });
+  */
   useEffect(() => {
     const initData = async () => {
-      const dirEntries = await fetchDirEntries(baseURL);
+      const dirEntries = await fetchDirEntries();
       setState({
         ...state,
         dirEntries,
       });
     };
+
     initData();
   }, []);
 
   const onClickFile = useCallback(
-    (dirEntry) => {
+    (dirEntry, index) => {
       dirEntry.isActive = !dirEntry.isActive;
-      setState({ ...state });
-      const activeFiles = getActiveDirEntries(state.dirEntries);
-      handleActiveFiles(activeFiles);
+      setState({ ...state, currentDirEntry: index });
+      onActiveImageChanged(dirEntry);
     },
-    [state.dirEntries],
+    [onActiveImageChanged, state],
   );
 
   const onClickDir = useCallback(
     async (dirEntry) => {
       if (!dirEntry.isFetched) {
-        dirEntry.dirEntries = await fetchDirEntries(baseURL, dirEntry.path);
+        dirEntry.dirEntries = await fetchDirEntries(dirEntry);
         dirEntry.isFetched = true;
       }
       dirEntry.open = !dirEntry.open;
 
       setState({ ...state });
     },
-    [state],
+    [state, baseURL],
   );
-
-  const getActiveDirEntries = useCallback((dirEntries) => {
-    let res = [];
-    dirEntries.forEach((item) => {
-      if (item.isActive) {
-        res.push(item);
-      }
-
-      if (item.dirEntries !== undefined && item.dirEntries.length > 0) {
-        res = res.concat(getActiveDirEntries(item.dirEntries));
-      }
-    });
-
-    return res;
-  }, []);
 
   return (
     <>
@@ -97,21 +95,27 @@ const SideBar = ({ handleActiveFiles, baseURL }) => {
   );
 };
 
+const compareByName = (a, b) => {
+  const nameA = extractNameFromPath(a.path).toUpperCase();
+  const nameB = extractNameFromPath(b.path).toUpperCase();
+
+  if (nameA < nameB) {
+    return -1;
+  } else if (nameA > nameB) {
+    return 1;
+  }
+  return 0;
+};
+
+const compareByIsDir = (a, b) => b.isDir - a.isDir;
+
 const renderDirEntries = (dirEntries, onClickDir, onClickFile) => {
   return dirEntries
     .sort((a, b) => {
-      const nameA = extractNameFromPath(a.path).toUpperCase();
-      const nameB = extractNameFromPath(b.path).toUpperCase();
+      const compareName = compareByName(a, b);
+      const compareIsDir = compareByIsDir(a, b);
 
-      if (nameA < nameB) {
-        return -1;
-      } else if (nameA > nameB) {
-        return 1;
-      }
-      return 0;
-    })
-    .sort((a, b) => {
-      return b.isDir - a.isDir;
+      return compareIsDir || compareName;
     })
     .map((item, index) => {
       return item.isDir ? (
@@ -122,10 +126,29 @@ const renderDirEntries = (dirEntries, onClickDir, onClickFile) => {
           onClickFile={onClickFile}
         />
       ) : (
-        <File key={index} dirEntry={item} onClickFile={onClickFile} />
+        <File
+          key={index}
+          index={index}
+          dirEntry={item}
+          onClickFile={onClickFile}
+        />
       );
     });
 };
+
+// for initialize -> 나중에 초기화하는 과정에서 사용할 함수
+// const getActiveDirEntries = (dirEntries) => {
+//   let res = [];
+//   dirEntries.forEach((item) => {
+//     if (item.isActive) res.push(item);
+
+//     if (item.dirEntries !== undefined && item.dirEntries.length > 0) {
+//       res = res.concat(getActiveDirEntries(item.dirEntries));
+//     }
+//   });
+
+//   return res;
+// };
 
 const Directory = ({ dirEntry, onClickDir, onClickFile }) => {
   return (
@@ -146,11 +169,13 @@ const Directory = ({ dirEntry, onClickDir, onClickFile }) => {
   );
 };
 
-const File = ({ dirEntry, onClickFile }) => {
+const File = ({ dirEntry, onClickFile, index }) => {
   return (
     <div
-      className={`file ${dirEntry.isActive && 'active'}`}
-      onClick={() => onClickFile(dirEntry)}
+      className={`file`}
+      onClick={() => {
+        onClickFile(dirEntry, index);
+      }}
     >
       <FontAwesomeIcon className="icon" icon={faImage} />
       <li>{extractNameFromPath(dirEntry.path)}</li>
@@ -163,12 +188,21 @@ const extractNameFromPath = (path) => {
   return splitted[splitted.length - 1];
 };
 
-const fetchDirEntries = async (baseURL, path = '') => {
+const fetchDirEntries = async (dirEntry) => {
+  const baseURL = '/api/browse';
+
   try {
-    const res = await axios.get(`${baseURL}${path}`);
-    return res.data;
+    const res = await axios.get(`${baseURL}${dirEntry ? dirEntry.path : ''}`);
+
+    return res.data.map((val) => ({
+      path: val.path,
+      size: val.size,
+      isDir: val.isDir,
+      parent: dirEntry,
+    }));
   } catch (e) {
     alert('Error!');
+    throw e;
   }
 };
 
