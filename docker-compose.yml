@@ -1,0 +1,40 @@
+version: "2.3"
+
+volumes:
+  front-build: {}
+  server-static: {}
+
+services:
+  backend:
+    build:
+      context: ./backend
+    image: data_viewer_backend
+    restart: unless-stopped
+    expose:
+      - "8000"
+    volumes:
+      - ../endtoend/projects:/app/data_root:ro
+      - ./backend/db.sqlite3:/app/
+      - server-static:/app/static
+
+  # to build front
+  frontend:
+    build:
+      context: ./frontend
+    image: data_viewer_frontend
+    restart: on-failure
+    volumes:
+      - front-build:/front/build
+
+  nginx:
+    image: nginx
+    restart: unless-stopped
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - server-static:/server-static
+      - front-build:/front-build
+    ports:
+      - 11586:80
+    depends_on:
+      - backend
+      - frontend

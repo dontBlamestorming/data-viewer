@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export const logIn = ({ email, password, setUser }) => {
-  const API = 'http://localhost:8000/account/login/';
+  const API = '/account/login/';
 
   axios
     .post(API, { email, password })
