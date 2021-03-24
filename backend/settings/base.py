@@ -136,9 +136,18 @@ USE_TZ = True
 
 # Static files (like CSS, JavaScript, Images)
 
+<<<<<<< HEAD
 STATIC_URL = "/static/"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+=======
+STATIC_ROOT = BASE_DIR / 'static'
+STATIC_URL = "/server-static/"
+
+MEDIA_URL = "/server-media/"
+MEDIA_ROOT = BASE_DIR / 'media'
+# BASE_DIR = /Users/ukdonglee/Documents/summercat_intern/backend/
+>>>>>>> f0ba374af1e6e711ca97fb1deebf4cab5bb9e98a
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
