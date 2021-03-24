@@ -1,17 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Redirect } from 'react-router-dom';
 
 import Button from '@material-ui/core/Button';
 
 import '../styles/Viewer.css';
+import API from '../api/index';
 
 import SideBar from '../components/SideBar';
 import Tools from '../components/Tools';
 
-function Viewer({}) {
+function Viewer() {
   const baseURL = '/api/browse';
   const [mode, setMode] = useState('');
   const [activeFiles, setActiveFiles] = useState([]);
+  const [objectURL, setObjectURL] = useState('');
   const [currentIdx, setCurrentIdx] = useState(
     activeFiles.length ? activeFiles.length - 1 : 0,
   );
@@ -70,9 +71,22 @@ function Viewer({}) {
     };
   }, [increaseCurrentId, decreaseCurrentId]);
 
-  const onActiveImageChanged = (dirEntry) => {
-    console.log('After file Click', dirEntry);
+  useEffect(() => {
+    URL.revokeObjectURL(objectURL);
 
+    if (activeFiles.length > 0) {
+      API.get(`/browse${activeFiles[0].path}`, { responseType: 'blob' })
+        .then((res) => {
+          const objectURL = URL.createObjectURL(res.data);
+          setObjectURL(objectURL);
+        })
+        .catch((e) => {
+          throw e;
+        });
+    }
+  }, [activeFiles, currentIdx]);
+
+  const onActiveImageChanged = (dirEntry) => {
     /* 
       dirEntry = [
         {
@@ -82,7 +96,6 @@ function Viewer({}) {
           isActive : true
         }
     */
-
     const splitted = dirEntry.path.split('.');
     const extention = splitted[splitted.length - 1];
     if (extention !== 'png') return;
@@ -123,14 +136,7 @@ function Viewer({}) {
         <div className="images__viewer">
           {activeFiles.length > 0 && (
             <div className="imageWrap">
-              <>
-                {activeFiles.length > 0 && (
-                  <img
-                    alt="이미지"
-                    src={`${baseURL}${activeFiles[currentIdx].path}`}
-                  />
-                )}
-              </>
+              {activeFiles.length > 0 && <img alt="이미지" src={objectURL} />}
             </div>
           )}
         </div>
