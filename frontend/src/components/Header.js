@@ -1,15 +1,16 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import Logo from '../assets/logo.png';
+
+import { Link as _Link, useHistory } from 'react-router-dom';
 
 import Button from '@material-ui/core/Button';
 import '../styles/Header.css';
 
-const Header = () => {
-  const [token, setToken] = useState(localStorage.getItem('usertoken'));
-  const logout = () => {
-    localStorage.clear();
-    setToken(false);
+const Header = ({ user, history }) => {
+  const onCickLogout = () => {
+    // history.push('/');
+    localStorage.removeItem('AUTH_TOKEN');
   };
 
   return (
@@ -47,25 +48,23 @@ const Header = () => {
                 </Link>
               </li>
               <li>
-                {!token ? (
-                  <Link
-                    to="/"
-                    className="btn"
-                    style={{ textDecoration: 'none' }}
+                {user ? (
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    className="logout__btn"
+                    onClick={onCickLogout}
                   >
-                    <Button variant="outlined" color="primary">
-                      Login
-                    </Button>
-                  </Link>
+                    Logout
+                  </Button>
                 ) : (
                   <Link
                     to="/"
                     style={{ textDecoration: 'none' }}
-                    onClick={logout}
                     className="btn"
                   >
                     <Button variant="outlined" color="primary">
-                      Logout
+                      Login
                     </Button>
                   </Link>
                 )}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Redirect } from 'react-router-dom';
 
 import Button from '@material-ui/core/Button';
 
@@ -6,11 +7,11 @@ import '../styles/Viewer.css';
 
 import SideBar from '../components/SideBar';
 import Tools from '../components/Tools';
+import Header from '../components/Header';
 
-function Viewer() {
+function Viewer({ user, authenticated, history }) {
   const baseURL = '/api/browse';
   const [mode, setMode] = useState('');
-  // console.log('Mode', mode);
   const [activeFiles, setActiveFiles] = useState([]);
   const [currentIdx, setCurrentIdx] = useState(
     activeFiles.length ? activeFiles.length - 1 : 0,
@@ -71,6 +72,8 @@ function Viewer() {
   }, [increaseCurrentId, decreaseCurrentId]);
 
   const onActiveImageChanged = (dirEntry) => {
+    console.log('After file Click', dirEntry);
+
     /* 
       dirEntry = [
         {
@@ -104,12 +107,14 @@ function Viewer() {
 
   return (
     <div id="viewer">
+      <Header user={user} authenticated={authenticated} history={history} />
+
       <div className="wrap">
         {/* Sidebar */}
 
         <div className="images__tree">
           <Button onClick={() => setMode(mode !== 'Tools' && 'Tools')}>
-            Change Mode
+            History
           </Button>
           <SideBar
             onActiveImageChanged={onActiveImageChanged}

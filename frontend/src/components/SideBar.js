@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
 import axios from 'axios';
+import API from '../api/index';
 import Button from '@material-ui/core/Button';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -33,18 +34,7 @@ const SideBar = ({ onActiveImageChanged, baseURL }) => {
     currentDirEntry: undefined,
     currentIdx: undefined,
   });
-  /*
-    useEffect(() => {
-      const handleKeyDown = (e) => {
-        switch (e.key) {
-          case 'ArrowUp':
-            e.preventDefault();
-            onClickFile();
-            break;
-        }
-      };
-    });
-  */
+
   useEffect(() => {
     const initData = async () => {
       const dirEntries = await fetchDirEntries();
@@ -57,8 +47,48 @@ const SideBar = ({ onActiveImageChanged, baseURL }) => {
     initData();
   }, []);
 
+  /*
+  Effect callbacks are synchronous to prevent race conditions. Put the async function inside:
+
+useEffect(() => {
+  async function fetchData() {
+    // You can await here
+    const response = await MyAPI.getData(someId);
+    // ...
+  }
+  fetchData();
+}, [someId]); // Or [] if effect doesn't need props or state
+  */
+
+  // const fetchDirEntries = useEffect((dirEntry) => {
+  //   try {
+  //     const res = [];
+  //     const res = axios.get(
+  //       `/api/browse${dirEntry ? dirEntry.path : ''}`,
+  //       {
+  //         headers: {
+  //           Authorization: ` Token ${localStorage.getItem('AUTH_TOKEN')}`,
+  //         },
+  //       },
+  //     );
+
+  //     console.log(`/api/browse${dirEntry ? dirEntry.path : ''}`);
+  //     console.log('Response', res);
+
+  //     return res.data.map((val) => ({
+  //       path: val.path,
+  //       size: val.size,
+  //       isDir: val.isDir,
+  //       parent: dirEntry,
+  //     }));
+  //   } catch (e) {
+  //     alert('Error!');
+  //     throw e;
+  //   }
+  // }, []);
+
   const onClickFile = useCallback(
-    (dirEntry, index) => {
+    async (dirEntry, index) => {
       dirEntry.isActive = !dirEntry.isActive;
       setState({ ...state, currentDirEntry: index });
       onActiveImageChanged(dirEntry);
@@ -189,10 +219,18 @@ const extractNameFromPath = (path) => {
 };
 
 const fetchDirEntries = async (dirEntry) => {
-  const baseURL = '/api/browse';
-
   try {
-    const res = await axios.get(`${baseURL}${dirEntry ? dirEntry.path : ''}`);
+    const res = await axios.get(`/api/browse${dirEntry ? dirEntry.path : ''}`, {
+      headers: {
+        Authorization: ` Token ${localStorage.getItem('AUTH_TOKEN')}`,
+      },
+    });
+
+    console.log(`/api/browse${dirEntry ? dirEntry.path : ''}`);
+    console.log('Response', res);
+
+    // const res = await API.get(`/browse${dirEntry ? dirEntry.path : ''}`);
+    // Unhandled Rejection (TypeError): Cannot set property 'Authorization' of undefined
 
     return res.data.map((val) => ({
       path: val.path,
