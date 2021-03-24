@@ -8,42 +8,78 @@ import LoginForm from './pages/LoginForm';
 import Viewer from './pages/Viewer';
 
 import AuthRoute from './components/AuthRoute';
+import Header from './components/Header';
 
 import API from './api/index';
 
+const TOKEN_KEY = 'auth_token';
+const storage = sessionStorage;
+
 function App() {
   const [user, setUser] = useState(null);
-  const authenticated = user != null;
+  const [isLoaded, setIsLoaded] = useState(false);
+  const authenticated = user !== null;
+
+  const login = async (token) => {
+    try {
+      const res = await API.get('/account/profile', {
+        headers: {
+          Authorization: `Token ${token}`,
+        },
+      });
+
+      API.setAuthInterceptor(token, logout);
+      storage.setItem(TOKEN_KEY, token);
+      setUser(res.data);
+    } catch (e) {
+      throw e;
+    }
+  };
+
+  const logout = () => {
+    API.clearAuthInterceptor();
+    storage.removeItem(TOKEN_KEY);
+    setUser(null);
+  };
 
   useEffect(() => {
-    const token = API.getAuthToken();
+    const token = storage.getItem(TOKEN_KEY);
     if (token) {
-      setUser(true);
+      login(token)
+        .then(() => setIsLoaded(true))
+        .catch((e) => storage.removeItem(TOKEN_KEY));
+    } else {
+      setIsLoaded(true);
     }
   }, []);
 
   return (
-    <Switch>
-      <Route
-        exact
-        path="/"
-        render={(props) => (
-          <LoginForm
-            authenticated={authenticated}
-            setUser={setUser}
-            {...props}
+    <>
+      <Header user={user} authenticated={authenticated} />
+      {isLoaded ? (
+        <Switch>
+          <Route
+            exact
+            path="/"
+            render={(props) => (
+              <LoginForm
+                authenticated={authenticated}
+                login={login}
+                {...props}
+              />
+            )}
           />
-        )}
-      />
 
-      <AuthRoute
-        authenticated={authenticated}
-        path="/viewer"
-        render={(props) => (
-          <Viewer user={user} authenticated={authenticated} {...props} />
-        )}
-      />
-    </Switch>
+          <AuthRoute
+            authenticated={authenticated}
+            path="/viewer"
+            render={(props) => <Viewer {...props} />}
+          />
+        </Switch>
+      ) : (
+        <span>로딩중...</span>
+      )}
+    </>
   );
 }
 

@@ -220,13 +220,9 @@ const extractNameFromPath = (path) => {
 
 const fetchDirEntries = async (dirEntry) => {
   try {
-    const res = await axios.get(`/api/browse${dirEntry ? dirEntry.path : ''}`, {
-      headers: {
-        Authorization: ` Token ${localStorage.getItem('AUTH_TOKEN')}`,
-      },
-    });
+    const res = await API.get(`/browse${dirEntry ? dirEntry.path : ''}`);
 
-    console.log(`/api/browse${dirEntry ? dirEntry.path : ''}`);
+    console.log(`/browse${dirEntry ? dirEntry.path : ''}`);
     console.log('Response', res);
 
     // const res = await API.get(`/browse${dirEntry ? dirEntry.path : ''}`);
@@ -239,7 +235,6 @@ const fetchDirEntries = async (dirEntry) => {
       parent: dirEntry,
     }));
   } catch (e) {
-    alert('Error!');
     throw e;
   }
 };

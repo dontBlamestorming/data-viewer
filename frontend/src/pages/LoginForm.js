@@ -7,26 +7,26 @@ import '../styles/LoginForm.css';
 
 import API from '../api/index';
 
-const LoginForm = ({ authenticated, setUser, location }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+const LoginForm = ({ authenticated, login, location }) => {
+  const [form, setForm] = useState({
+    email: '',
+    password: '',
+  });
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    API.post('/login', { email, password })
+    API.post('/account/login', { ...form })
       .then((res) => {
-        const token = res.data.token;
-
-        API.setAuthToken(token);
-        setUser(true);
+        login(res.data.token);
       })
       .catch((error) => {
-        if (!error.response) {
-        } else if (error.response.status === 401) {
+        if (error.response && error.response.status === 400) {
           alert('잘못된 계정 정보입니다.');
-          setEmail('');
-          setPassword('');
+          setForm({
+            email: '',
+            password: '',
+          });
         } else {
           console.log(error);
         }
@@ -55,7 +55,10 @@ const LoginForm = ({ authenticated, setUser, location }) => {
             type="text"
             className="inputFirst"
             onChange={(e) => {
-              setEmail(e.target.value);
+              setForm({
+                ...form,
+                email: e.target.value,
+              });
             }}
           />
 
@@ -65,7 +68,10 @@ const LoginForm = ({ authenticated, setUser, location }) => {
             type="password"
             className="inputLast"
             onChange={(e) => {
-              setPassword(e.target.value);
+              setForm({
+                ...form,
+                password: e.target.value,
+              });
             }}
           />
 

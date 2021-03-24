@@ -1,21 +1,14 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: '/account',
+  baseURL: '/api',
 });
-
-const AUTH_TOKEN_KEY = 'AUTH_TOKEN';
-
-API.getAuthToken = () => localStorage.getItem(AUTH_TOKEN_KEY);
-API.setAuthToken = (token) => localStorage.setItem(AUTH_TOKEN_KEY, token);
-API.removeAuthToken = () => localStorage.removeItem(AUTH_TOKEN_KEY);
 
 API.interceptors.request.use(
   (config) => {
-    setAuthorization(config);
-    setURLTrailingSlash(config);
-
-    console.log('Before Req', config);
+    if (!config.url.endsWith('/')) {
+      config.url = `${config.url}/`;
+    }
     return config;
   },
   (error) => {
@@ -23,30 +16,28 @@ API.interceptors.request.use(
   },
 );
 
-API.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    if (error.response && error.response.status === 401) {
-      API.removeAuthToken();
-    }
-    return Promise.reject(error);
-  },
-);
+const authInterceptor = {};
 
-const setAuthorization = (config) => {
-  const authToken = API.getAuthToken();
+API.setAuthInterceptor = (token, logout) => {
+  authInterceptor.req = API.interceptors.request.use((config) => {
+    config.headers.Authorization = `Token ${token}`;
+    return config;
+  });
 
-  if (authToken) {
-    config.header.Authorization = `Token ${authToken}`;
-  }
+  authInterceptor.res = API.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      if (error.response && error.response.status === 401) {
+        logout();
+      }
+      return Promise.reject(error);
+    },
+  );
 };
 
-const setURLTrailingSlash = (config) => {
-  if (!config.url.endsWith('/')) {
-    config.url = `${config.url}/`;
-  }
+API.clearAuthInterceptor = () => {
+  API.interceptors.request.eject(authInterceptor.req);
+  API.interceptors.response.eject(authInterceptor.res);
 };
 
 export default API;

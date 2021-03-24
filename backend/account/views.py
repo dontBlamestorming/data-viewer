@@ -1,16 +1,18 @@
-from rest_framework.views import APIView
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework.authtoken.models import Token
-from django.contrib.auth import authenticate
 
-class LoginView(APIView):
-    permission_classes = []
+from .serializers import AuthTokenSerializer
 
-    def post(self, request):
-        user = authenticate(email=request.data['email'], password=request.data['password'])
-        print("USER",user)
-        if user is not None:
-            token = Token.objects.get(user=user)
-            return Response({"token": token.key})
-        else:
-            return Response(status=401)
+
+class LoginView(ObtainAuthToken):
+    serializer_class = AuthTokenSerializer
+
+
+@api_view(http_method_names=["GET"])
+def profile(request):
+    return Response(
+        {
+            "email": request.user.email,
+        }
+    )

@@ -7,9 +7,8 @@ import '../styles/Viewer.css';
 
 import SideBar from '../components/SideBar';
 import Tools from '../components/Tools';
-import Header from '../components/Header';
 
-function Viewer({ user, authenticated, history }) {
+function Viewer({}) {
   const baseURL = '/api/browse';
   const [mode, setMode] = useState('');
   const [activeFiles, setActiveFiles] = useState([]);
@@ -107,8 +106,6 @@ function Viewer({ user, authenticated, history }) {
 
   return (
     <div id="viewer">
-      <Header user={user} authenticated={authenticated} history={history} />
-
       <div className="wrap">
         {/* Sidebar */}
 
