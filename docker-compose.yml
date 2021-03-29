@@ -11,6 +11,8 @@ services:
       context: ./backend
     image: data_viewer_backend
     restart: unless-stopped
+    environment:
+      - DJANGO_SETTINGS_MODULE=settings.prod
     expose:
       - "8000"
     volumes:
