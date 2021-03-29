@@ -2,14 +2,35 @@ import React, { useState, useEffect, useCallback } from 'react';
 
 import Button from '@material-ui/core/Button';
 
+import styled from 'styled-components';
+
 import '../styles/Viewer.css';
 import API from '../api/index';
 
 import SideBar from '../components/SideBar';
 import Tools from '../components/Tools';
-import ImageController from '../components/ImageController';
+import { MapInteraction } from 'react-map-interaction';
 
-function Viewer() {
+// const initialState = {
+//   zoom: {
+//     container: {
+//       width: 0,
+//       height: 0,
+//     },
+//     image: {
+//       width: 0,
+//       height: 0,
+//     },
+//     minScale: 1,
+//     scale: 1,
+//     translation: {
+//       x: 0,
+//       y: 0,
+//     },
+//   },
+// };
+
+export default function Viewer() {
   const baseURL = '/api/browse';
   const [mode, setMode] = useState('Default');
   const [activeFiles, setActiveFiles] = useState([]);
@@ -18,6 +39,7 @@ function Viewer() {
     activeFiles.length ? activeFiles.length - 1 : 0,
   );
   const [anchorIdx, setAnchorIdx] = useState(0);
+  // const [state, setState] = useState(initialState);
 
   const increaseCurrentId = useCallback(() => {
     if (activeFiles.length > 0) {
@@ -139,8 +161,31 @@ function Viewer() {
           {activeFiles.length > 0 && (
             <div className="images__wrap">
               {activeFiles.length > 0 && (
-                <ImageController src={objectURL} />
-                // <img alt="이미지" src={objectURL} ref={imageRef} />
+                // <Zoom src={objectURL} />
+
+                <MapInteraction>
+                  {({ translation, scale }) => {
+                    console.log(translation, scale);
+
+                    return (
+                      <Container>
+                        <ImageWrapper
+                          translation={{
+                            x: translation.x,
+                            y: translation.y,
+                          }}
+                          scale={scale}
+                        >
+                          <img
+                            alt="이미지"
+                            src={objectURL}
+                            style={{ position: 'relative' }}
+                          />
+                        </ImageWrapper>
+                      </Container>
+                    );
+                  }}
+                </MapInteraction>
               )}
             </div>
           )}
@@ -162,4 +207,31 @@ function Viewer() {
   );
 }
 
-export default Viewer;
+const Container = styled.div`
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+
+  cursor: grab;
+  touch-action: none;
+  -ms-touch-action: none;
+
+  user-select: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+
+  -webkit-touch-callout: none;
+`;
+
+const ImageWrapper = styled.div.attrs((props) => ({
+  style: {
+    transform: `translate(${props.translation.x}px, ${props.translation.y}px) scale(${props.scale})`,
+  },
+}))`
+  display: inline-block;
+  transformorigin: '0 0 ';
+  position: relative;
+`;
