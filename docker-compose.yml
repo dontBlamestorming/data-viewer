@@ -13,7 +13,7 @@ services:
     expose:
       - "8000"
     volumes:
-      - ../endtoend/projects:/app/data_root:ro
+      - /home/kaske/endtoend/projects:/app/data_root:ro
       - ./backend/db.sqlite3:/app/db.sqlite3
       - server-static:/app/static
 

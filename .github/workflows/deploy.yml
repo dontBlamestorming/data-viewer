@@ -1,0 +1,14 @@
+name: data_viewer CI
+
+on:
+  push:
+    branches: [prod]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: idc
+
+    steps:
+      - uses: actions/checkout@v2
+      - run: docker-compose -p data_viewer up --build -d
