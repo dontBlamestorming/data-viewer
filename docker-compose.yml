@@ -14,7 +14,7 @@ services:
       - "8000"
     volumes:
       - ../endtoend/projects:/app/data_root:ro
-      - ./backend/db.sqlite3:/app/
+      - ./backend/db.sqlite3:/app/db.sqlite3
       - server-static:/app/static
 
   # to build front
