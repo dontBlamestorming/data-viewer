@@ -3,6 +3,7 @@ version: "2.3"
 volumes:
   front-build: {}
   server-static: {}
+  sqlite3: {}
 
 services:
   backend:
@@ -14,7 +15,7 @@ services:
       - "8000"
     volumes:
       - /home/kaske/endtoend/projects:/app/data_root:ro
-      - ./backend/db.sqlite3:/app/db.sqlite3
+      - sqlite3:/app/database
       - server-static:/app/static
 
   # to build front
