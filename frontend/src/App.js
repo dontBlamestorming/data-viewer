@@ -46,15 +46,15 @@ function App() {
     const token = storage.getItem(TOKEN_KEY);
     if (token) {
       login(token)
-        .then(() => setIsLoaded(true))
-        .catch((e) => storage.removeItem(TOKEN_KEY));
+        .catch((e) => storage.removeItem(TOKEN_KEY))
+        .finally(() => setIsLoaded(true));
     } else {
       setIsLoaded(true);
     }
   }, []);
 
   return (
-    <>
+    <div className="App">
       <Header user={user} authenticated={authenticated} />
       {isLoaded ? (
         <Switch>
@@ -79,7 +79,7 @@ function App() {
       ) : (
         <span>로딩중...</span>
       )}
-    </>
+    </div>
   );
 }
 

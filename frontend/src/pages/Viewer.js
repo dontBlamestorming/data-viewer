@@ -7,10 +7,11 @@ import API from '../api/index';
 
 import SideBar from '../components/SideBar';
 import Tools from '../components/Tools';
+import ImageController from '../components/ImageController';
 
 function Viewer() {
   const baseURL = '/api/browse';
-  const [mode, setMode] = useState('');
+  const [mode, setMode] = useState('Default');
   const [activeFiles, setActiveFiles] = useState([]);
   const [objectURL, setObjectURL] = useState('');
   const [currentIdx, setCurrentIdx] = useState(
@@ -129,14 +130,18 @@ function Viewer() {
           <SideBar
             onActiveImageChanged={onActiveImageChanged}
             baseURL={baseURL}
+            mode={mode}
           />
         </div>
 
         {/* Image space */}
         <div className="images__viewer">
           {activeFiles.length > 0 && (
-            <div className="imageWrap">
-              {activeFiles.length > 0 && <img alt="이미지" src={objectURL} />}
+            <div className="images__wrap">
+              {activeFiles.length > 0 && (
+                <ImageController src={objectURL} />
+                // <img alt="이미지" src={objectURL} ref={imageRef} />
+              )}
             </div>
           )}
         </div>

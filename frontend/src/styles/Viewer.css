@@ -1,29 +1,37 @@
-#viewer {}
+#viewer {
+  height : 92%;
+  position: relative;
+}
 
 .wrap {
   position: absolute;
   width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
 }
 
 .images__tree{
-  width: 25%;
-  background-color: #AFEEEE;
+  width: 20%;
+  background-color: rgb(30, 40, 72);
   overflow:scroll;
   border: 1px solid black;
 }
 
 .images__viewer {  
-  width: 50%;
-  overflow: hidden;
+  width: 60%;
+  /* overflow: hidden; */
+  
   border: 1px solid black;
 }
 
+.images__viewer .images__wrap {
+  
+}
+
 img {
-  max-width: 100%;
-  height: auto;
+  position: absolute;
 }
 
 .Btn {
@@ -31,7 +39,7 @@ img {
 }
 
 .images__tools {
-  width: 25%;
+  width: 20%;
   background-color: #00FFFF;
 
   border: 1px solid black;

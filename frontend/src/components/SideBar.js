@@ -11,7 +11,7 @@ import {
 
 import '../styles/SideBar.css';
 
-const SideBar = ({ onActiveImageChanged, baseURL }) => {
+const SideBar = ({ onActiveImageChanged, baseURL, mode }) => {
   /*
     state ==
       {
@@ -32,6 +32,7 @@ const SideBar = ({ onActiveImageChanged, baseURL }) => {
     currentDirEntry: undefined,
     currentIdx: undefined,
   });
+  const [activedDirEnrty, setActivedDirEnrty] = useState({});
 
   useEffect(() => {
     const initData = async () => {
@@ -48,6 +49,21 @@ const SideBar = ({ onActiveImageChanged, baseURL }) => {
   const onClickFile = useCallback(
     async (dirEntry, index) => {
       dirEntry.isActive = !dirEntry.isActive;
+
+      switch (mode) {
+        case 'Default':
+          if (dirEntry.isActive) {
+            activedDirEnrty.isActive = false;
+            setActivedDirEnrty(dirEntry);
+          }
+          setState({ ...state, currentDirEntry: index });
+          onActiveImageChanged(dirEntry);
+          break;
+
+        default:
+          break;
+      }
+
       setState({ ...state, currentDirEntry: index });
       onActiveImageChanged(dirEntry);
     },
@@ -70,7 +86,6 @@ const SideBar = ({ onActiveImageChanged, baseURL }) => {
   return (
     <>
       <div id="sidebar">
-        <h1>Side Bar</h1>
         <div className="container">
           <div className="content">
             <ul>
@@ -83,16 +98,26 @@ const SideBar = ({ onActiveImageChanged, baseURL }) => {
   );
 };
 
-const compareByName = (a, b) => {
-  const nameA = extractNameFromPath(a.path).toUpperCase();
-  const nameB = extractNameFromPath(b.path).toUpperCase();
+/*
 
-  if (nameA < nameB) {
-    return -1;
-  } else if (nameA > nameB) {
-    return 1;
-  }
-  return 0;
+  숫자라면 ? 숫자로 비교해서 ~
+  문자라면 ? 사전적 순서대로 ~
+
+  1. isDir인지 아닌지 체크
+  2. 이름으로 비교해서 정렬
+  3. 숫자로비교 ~
+
+
+*/
+
+const compareByLocale = (a, b) => {
+  const _a = a.path;
+  const _b = b.path;
+
+  return _a.localeCompare(_b, undefined, {
+    numeric: true,
+    sensitivity: 'base',
+  });
 };
 
 const compareByIsDir = (a, b) => b.isDir - a.isDir;
@@ -100,10 +125,10 @@ const compareByIsDir = (a, b) => b.isDir - a.isDir;
 const renderDirEntries = (dirEntries, onClickDir, onClickFile) => {
   return dirEntries
     .sort((a, b) => {
-      const compareName = compareByName(a, b);
       const compareIsDir = compareByIsDir(a, b);
+      const compareLocale = compareByLocale(a, b);
 
-      return compareIsDir || compareName;
+      return compareIsDir || compareLocale;
     })
     .map((item, index) => {
       return item.isDir ? (
@@ -141,13 +166,14 @@ const renderDirEntries = (dirEntries, onClickDir, onClickFile) => {
 const Directory = ({ dirEntry, onClickDir, onClickFile }) => {
   return (
     <>
-      <div className="directory" onClick={() => onClickDir(dirEntry)}>
+      <li className="directory" onClick={() => onClickDir(dirEntry)}>
         <FontAwesomeIcon
           className="icon"
           icon={dirEntry.open ? faChevronDown : faChevronRight}
         />
-        <li>{extractNameFromPath(dirEntry.path)}</li>
-      </div>
+        <span>{extractNameFromPath(dirEntry.path)}</span>
+      </li>
+
       {dirEntry.open && (
         <ul className="directory__sub">
           {renderDirEntries(dirEntry.dirEntries, onClickDir, onClickFile)}
@@ -159,15 +185,17 @@ const Directory = ({ dirEntry, onClickDir, onClickFile }) => {
 
 const File = ({ dirEntry, onClickFile, index }) => {
   return (
-    <div
-      className={`file `}
+    <li
+      id={index}
+      // className={`file  ${dirEntry.isActive && 'active'}`}
+      className={`file  ${dirEntry.isActive && 'active'}`}
       onClick={() => {
         onClickFile(dirEntry, index);
       }}
     >
       <FontAwesomeIcon className="icon" icon={faImage} />
-      <li>{extractNameFromPath(dirEntry.path)}</li>
-    </div>
+      <span>{extractNameFromPath(dirEntry.path)}</span>
+    </li>
   );
 };
 
@@ -192,3 +220,12 @@ const fetchDirEntries = async (dirEntry) => {
 };
 
 export default SideBar;
+
+/*
+  click ? 클릭한 해당 list의 className을 active, 
+  다른 list 클릭하면? 기존의 active였던 list className 초기화
+  기존에 클릭되었던 id 기억하고 그거 초기화 시키면 될것같은데 
+
+
+
+*/
