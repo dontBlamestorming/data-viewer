@@ -1,34 +1,31 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 
-import Button from '@material-ui/core/Button';
-
-import styled from 'styled-components';
-
-import '../styles/Viewer.css';
-import API from '../api/index';
+import { makeStyles } from '@material-ui/core';
+import Grid from '@material-ui/core/Grid';
 
 import SideBar from '../components/SideBar';
 import Tools from '../components/Tools';
-import { MapInteraction } from 'react-map-interaction';
 
-// const initialState = {
-//   zoom: {
-//     container: {
-//       width: 0,
-//       height: 0,
-//     },
-//     image: {
-//       width: 0,
-//       height: 0,
-//     },
-//     minScale: 1,
-//     scale: 1,
-//     translation: {
-//       x: 0,
-//       y: 0,
-//     },
-//   },
-// };
+import { MapInteractionCSS } from 'react-map-interaction';
+
+import API from '../api/index';
+import '../styles/Viewer.css';
+
+const initaiState = {
+  scale: 1,
+  translation: { x: 0, y: 0 },
+  container: { width: 0, height: 0 },
+  translationBounds: {
+    xMin: 0,
+    xMax: 0,
+    yMin: 0,
+    yMax: 0,
+  },
+  imgCon: {
+    width: 0,
+    height: 0,
+  },
+};
 
 export default function Viewer() {
   const baseURL = '/api/browse';
@@ -39,7 +36,9 @@ export default function Viewer() {
     activeFiles.length ? activeFiles.length - 1 : 0,
   );
   const [anchorIdx, setAnchorIdx] = useState(0);
-  // const [state, setState] = useState(initialState);
+  const [state, setState] = useState(initaiState);
+  let imgConRef = useRef();
+  let imgRef = useRef();
 
   const increaseCurrentId = useCallback(() => {
     if (activeFiles.length > 0) {
@@ -140,98 +139,182 @@ export default function Viewer() {
     }
   };
 
+  const useStyles = makeStyles(() => ({
+    viewer: {
+      position: 'relative',
+      width: '100%',
+    },
+    sideBar: {
+      backgroundColor: 'rgb(30, 40, 72)',
+      overflow: 'scroll',
+    },
+    imageViewer: {
+      width: '100%',
+      height: '100%',
+      overflow: 'hidden',
+      cursor: 'grab',
+      touchAction: 'none',
+      // 모바일 터치 이벤트 제한
+      userSelect: 'none',
+      WebkitUserSelect: 'none',
+      MozUserSelect: 'none',
+      msUserSelect: 'none',
+      WebkitTouchCallout: 'none',
+    },
+  }));
+
+  const classes = useStyles();
+
+  const onChangeZoom = useCallback(
+    ({ scale, translation }) => {
+      const imgWidth = imgRef.current.clientWidth;
+      const imgHeight = imgRef.current.clientHeight;
+      const imgConWidth = imgConRef.current.clientWidth;
+      const imgConHeight = imgConRef.current.clientHeight;
+
+      const newState = {
+        ...state,
+        scale: scale,
+        translation: translation,
+        translationBounds: {
+          xMin: -1 * (imgWidth * scale - imgWidth),
+          xMax: imgWidth / 2,
+          yMin: -1 * (imgHeight * scale - imgHeight),
+          yMax: imgHeight / 2,
+        },
+        imgCon: { width: imgConWidth, height: imgConHeight },
+        img: { wdith: imgWidth, height: imgHeight },
+      };
+
+      setState(newState);
+    },
+    [state, setState],
+  );
+
   return (
-    <div id="viewer">
-      <div className="wrap">
-        {/* Sidebar */}
+    <Grid container xs={12} className={classes.viewer}>
+      {/* Side Bar */}
+      <Grid item xs={3} className={classes.sideBar}>
+        <SideBar
+          onActiveImageChanged={onActiveImageChanged}
+          baseURL={baseURL}
+          mode={mode}
+        />
+      </Grid>
 
-        <div className="images__tree">
-          <Button onClick={() => setMode(mode !== 'Tools' && 'Tools')}>
-            History
-          </Button>
-          <SideBar
-            onActiveImageChanged={onActiveImageChanged}
-            baseURL={baseURL}
-            mode={mode}
-          />
-        </div>
-
-        {/* Image space */}
-        <div className="images__viewer">
+      {/* Image Viewer */}
+      <Grid item xs={7} className={classes.imageViewer}>
+        <div
+          style={{
+            position: 'relative',
+            width: '100%',
+            height: '100%',
+          }}
+          ref={imgConRef}
+        >
           {activeFiles.length > 0 && (
-            <div className="images__wrap">
-              {activeFiles.length > 0 && (
-                // <Zoom src={objectURL} />
-
-                <MapInteraction>
-                  {({ translation, scale }) => {
-                    console.log(translation, scale);
-
-                    return (
-                      <Container>
-                        <ImageWrapper
-                          translation={{
-                            x: translation.x,
-                            y: translation.y,
-                          }}
-                          scale={scale}
-                        >
-                          <img
-                            alt="이미지"
-                            src={objectURL}
-                            style={{ position: 'relative' }}
-                          />
-                        </ImageWrapper>
-                      </Container>
-                    );
+            <MapInteractionCSS
+              value={state}
+              onChange={onChangeZoom}
+              minScale={1}
+              maxScale={3}
+              translationBounds={{
+                xMin: state.translationBounds.xMin,
+                xMax: state.translationBounds.xMax,
+                yMin: state.translationBounds.yMin,
+                yMax: state.translationBounds.yMax,
+              }}
+            >
+              <div
+                style={{
+                  position: 'relative',
+                  width: '100%',
+                  height: '100%',
+                  transform: `translate(${state.translation.x}px, ${state.translation.y}px) scale(${state.scale})`,
+                }}
+              >
+                <img
+                  alt="이미지"
+                  src={objectURL}
+                  ref={imgRef}
+                  style={{
+                    width: '100%',
+                    maxWidth: '100%',
+                    height: 'auto',
                   }}
-                </MapInteraction>
-              )}
-            </div>
+                />
+              </div>
+            </MapInteractionCSS>
           )}
         </div>
+      </Grid>
 
-        {/* tools space */}
-        {mode === 'Tools' && (
-          <div className="images__tools">
-            <Tools
-              activeFiles={activeFiles}
-              setActiveFiles={setActiveFiles}
-              currentIdx={currentIdx}
-              setCurrentIdx={setCurrentIdx}
-            />
-          </div>
-        )}
-      </div>
-    </div>
+      {/* Tools Space */}
+      <Grid item xs={2}>
+        업데이트중
+      </Grid>
+    </Grid>
   );
 }
 
-const Container = styled.div`
-  width: 100%;
-  height: 100%;
-  position: relative;
-  overflow: hidden;
+// <div id="viewer">
+//   <div className="wrap">
+//     {/* Sidebar */}
 
-  cursor: grab;
-  touch-action: none;
-  -ms-touch-action: none;
+//     <div className="images__tree">
+//       <Button onClick={() => setMode(mode !== 'Tools' && 'Tools')}>
+//         History
+//       </Button>
+//       <SideBar
+//         onActiveImageChanged={onActiveImageChanged}
+//         baseURL={baseURL}
+//         mode={mode}
+//       />
+//     </div>
 
-  user-select: none;
-  -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
+//     {/* Image space */}
+//     <div className="images__viewer">
+//       {activeFiles.length > 0 && (
+//         <div className="images__wrap">
+//           {activeFiles.length > 0 && (
+//             <MapInteraction>
+//               {({ translation, scale }) => {
+//                 console.log(translation, scale);
 
-  -webkit-touch-callout: none;
-`;
+//                 return (
+//                   <Container>
+//                     <ImageWrapper
+//                       translation={{
+//                         x: translation.x,
+//                         y: translation.y,
+//                       }}
+//                       scale={scale}
+//                     >
+//                       <img
+//                         alt="이미지"
+//                         src={objectURL}
+//                         style={{ position: 'relative' }}
+//                       />
+//                     </ImageWrapper>
+//                   </Container>
+//                 );
+//               }}
+//             </MapInteraction>
+//           )}
+//         </div>
+//       )}
+//     </div>
 
-const ImageWrapper = styled.div.attrs((props) => ({
-  style: {
-    transform: `translate(${props.translation.x}px, ${props.translation.y}px) scale(${props.scale})`,
-  },
-}))`
-  display: inline-block;
-  transformorigin: '0 0 ';
-  position: relative;
-`;
+//     {/* tools space */}
+//     {mode === 'Tools' && (
+//       <div className="images__tools">
+//         <Tools
+//           activeFiles={activeFiles}
+//           setActiveFiles={setActiveFiles}
+//           currentIdx={currentIdx}
+//           setCurrentIdx={setCurrentIdx}
+//         />
+//       </div>
+//     )}
+//   </div>
+// </div>

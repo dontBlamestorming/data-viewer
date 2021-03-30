@@ -22,7 +22,7 @@ const initialState = {
   },
 };
 
-function Zoom() {
+function Zoom({ src }) {
   const [image, setImage] = useState([]);
   const [state, setState] = useState(initialState);
   const zoomConRef = useRef(null);
@@ -102,7 +102,6 @@ function Zoom() {
 
   return (
     <div>
-      <h1>Hello!!! This is Zoom!!!!</h1>
       <div className="imageWrap" ref={zoomConRef}>
         <MapInteraction value={state.zoom} onChange={onChangeZoom}>
           {({ translation, scale }) => (
@@ -116,10 +115,10 @@ function Zoom() {
               >
                 <img
                   ref={imgConRef}
-                  // style={{ position: 'absolute' }}
+                  style={{ position: 'relative' }}
                   className="imageContent"
                   alt="originalImage"
-                  src={image}
+                  src={src}
                 />
               </ImageWrapper>
             </Container>
@@ -158,5 +157,5 @@ const ImageWrapper = styled.div.attrs((props) => ({
 }))`
   display: inline-block;
   transformorigin: '0 0 ';
-  position: absolute;
+  position: relative;
 `;

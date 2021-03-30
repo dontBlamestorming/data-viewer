@@ -7,7 +7,7 @@ import '../styles/LoginForm.css';
 
 import API from '../api/index';
 
-const LoginForm = ({ authenticated, login, location }) => {
+export default function LoginForm({ authenticated, login, location }) {
   const [form, setForm] = useState({
     email: '',
     password: '',
@@ -88,5 +88,4 @@ const LoginForm = ({ authenticated, login, location }) => {
       </div>
     </div>
   );
-};
-export default LoginForm;
+}
