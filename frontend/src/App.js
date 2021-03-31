@@ -55,7 +55,7 @@ function App() {
 
   return (
     <div className="App">
-      <Header user={user} authenticated={authenticated} />
+      <Header user={user} authenticated={authenticated} logout={logout} />
       {isLoaded ? (
         <Switch>
           <Route
