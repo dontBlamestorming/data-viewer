@@ -31,7 +31,8 @@ export default function Viewer() {
   const baseURL = '/api/browse';
   const [mode, setMode] = useState('Default');
   const [activeFiles, setActiveFiles] = useState([]);
-  const [objectURL, setObjectURL] = useState('');
+  const [renderTextFile, setRenderTextFile] = useState('');
+  const [objectURL, setObjectURL] = useState(null);
   const [currentIdx, setCurrentIdx] = useState(
     activeFiles.length ? activeFiles.length - 1 : 0,
   );
@@ -99,8 +100,16 @@ export default function Viewer() {
     if (activeFiles.length > 0) {
       API.get(`/browse${activeFiles[0].path}`, { responseType: 'blob' })
         .then((res) => {
-          const objectURL = URL.createObjectURL(res.data);
-          setObjectURL(objectURL);
+          if (res.data.type === 'text/plain') {
+            res.data.text().then((text) => {
+              setRenderTextFile(text);
+              setObjectURL(null);
+            });
+          } else {
+            const objectURL = URL.createObjectURL(res.data);
+            setObjectURL(objectURL);
+            setRenderTextFile(null);
+          }
         })
         .catch((e) => {
           throw e;
@@ -118,10 +127,6 @@ export default function Viewer() {
           isActive : true
         }
     */
-    const splitted = dirEntry.path.split('.');
-    const extention = splitted[splitted.length - 1];
-    if (extention !== 'png') return;
-
     switch (mode) {
       case 'Tools':
         if (dirEntry.isActive === true) {
@@ -145,14 +150,16 @@ export default function Viewer() {
       width: '100%',
     },
     sideBar: {
+      paddingTop: '18px',
       backgroundColor: 'rgb(30, 40, 72)',
       overflow: 'scroll',
+      height: 'calc(100vh - 60px)',
+      fontSize: '1rem',
     },
     imageViewer: {
       width: '100%',
-      height: '100%',
+      height: 'calc(100vh - 60px)',
       overflow: 'hidden',
-      cursor: 'grab',
       touchAction: 'none',
       // 모바일 터치 이벤트 제한
       userSelect: 'none',
@@ -172,18 +179,29 @@ export default function Viewer() {
       const imgConWidth = imgConRef.current.clientWidth;
       const imgConHeight = imgConRef.current.clientHeight;
 
+      const imageRatio = imgHeight / imgWidth;
+
+      let width = Math.min(imgWidth, imgConWidth);
+      let height = width * imageRatio;
+
+      if (height > imgConHeight) {
+        width = imgConHeight / imageRatio;
+        height = imgConHeight;
+      }
+
+      const newScale = width / imgWidth;
+      const UpdatedScale = Math.max(scale, newScale);
+
       const newState = {
         ...state,
         scale: scale,
         translation: translation,
         translationBounds: {
-          xMin: -1 * (imgWidth * scale - imgWidth),
-          xMax: imgWidth / 2,
-          yMin: -1 * (imgHeight * scale - imgHeight),
-          yMax: imgHeight / 2,
+          xMin: -1 * (imgWidth * UpdatedScale - imgConWidth),
+          xMax: 0,
+          yMin: -1 * (imgHeight * UpdatedScale - imgConHeight),
+          yMax: 0,
         },
-        imgCon: { width: imgConWidth, height: imgConHeight },
-        img: { wdith: imgWidth, height: imgHeight },
       };
 
       setState(newState);
@@ -202,35 +220,35 @@ export default function Viewer() {
         />
       </Grid>
 
-      {/* Image Viewer */}
-      <Grid item xs={7} className={classes.imageViewer}>
+      {/* Viewer */}
+      <Grid item xs={9} className={classes.imageViewer}>
         <div
           style={{
             position: 'relative',
             width: '100%',
-            height: '100%',
+            height: 'calc(100vh - 60px)',
+            fontSize: '3rem',
+            fontStyle: 'italic',
           }}
           ref={imgConRef}
         >
-          {activeFiles.length > 0 && (
-            <MapInteractionCSS
-              value={state}
-              onChange={onChangeZoom}
-              minScale={1}
-              maxScale={3}
-              translationBounds={{
-                xMin: state.translationBounds.xMin,
-                xMax: state.translationBounds.xMax,
-                yMin: state.translationBounds.yMin,
-                yMax: state.translationBounds.yMax,
-              }}
-            >
-              <div
-                style={{
-                  position: 'relative',
-                  width: '100%',
-                  height: '100%',
-                  transform: `translate(${state.translation.x}px, ${state.translation.y}px) scale(${state.scale})`,
+          {renderTextFile && (
+            <Grid container justify="center" alignItems="center">
+              <pre>{renderTextFile}</pre>
+            </Grid>
+          )}
+          {objectURL && (
+            <>
+              <MapInteractionCSS
+                value={state}
+                onChange={onChangeZoom}
+                minScale={1}
+                maxScale={3}
+                translationBounds={{
+                  xMin: state.translationBounds.xMin,
+                  xMax: state.translationBounds.xMax,
+                  yMin: state.translationBounds.yMin,
+                  yMax: state.translationBounds.yMax,
                 }}
               >
                 <img
@@ -241,70 +259,22 @@ export default function Viewer() {
                     width: '100%',
                     maxWidth: '100%',
                     height: 'auto',
+                    cursor: 'grab',
                   }}
                 />
-              </div>
-            </MapInteractionCSS>
+              </MapInteractionCSS>
+            </>
           )}
         </div>
       </Grid>
 
       {/* Tools Space */}
-      <Grid item xs={2}>
+      {/* <Grid item xs={2}>
         업데이트중
-      </Grid>
+      </Grid> */}
     </Grid>
   );
 }
-
-// <div id="viewer">
-//   <div className="wrap">
-//     {/* Sidebar */}
-
-//     <div className="images__tree">
-//       <Button onClick={() => setMode(mode !== 'Tools' && 'Tools')}>
-//         History
-//       </Button>
-//       <SideBar
-//         onActiveImageChanged={onActiveImageChanged}
-//         baseURL={baseURL}
-//         mode={mode}
-//       />
-//     </div>
-
-//     {/* Image space */}
-//     <div className="images__viewer">
-//       {activeFiles.length > 0 && (
-//         <div className="images__wrap">
-//           {activeFiles.length > 0 && (
-//             <MapInteraction>
-//               {({ translation, scale }) => {
-//                 console.log(translation, scale);
-
-//                 return (
-//                   <Container>
-//                     <ImageWrapper
-//                       translation={{
-//                         x: translation.x,
-//                         y: translation.y,
-//                       }}
-//                       scale={scale}
-//                     >
-//                       <img
-//                         alt="이미지"
-//                         src={objectURL}
-//                         style={{ position: 'relative' }}
-//                       />
-//                     </ImageWrapper>
-//                   </Container>
-//                 );
-//               }}
-//             </MapInteraction>
-//           )}
-//         </div>
-//       )}
-//     </div>
-
 //     {/* tools space */}
 //     {mode === 'Tools' && (
 //       <div className="images__tools">

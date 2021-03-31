@@ -7,7 +7,7 @@ import { makeStyles } from '@material-ui/core';
 
 import logoImage from '../assets/logo.png';
 
-export default function Header({ authenticated }) {
+export default function Header({ authenticated, logout }) {
   /**
    * Todo :
    * - 로그아웃 Btn 클릭하면 token delete and '/'로 던지기
@@ -65,7 +65,9 @@ export default function Header({ authenticated }) {
             써머캣 만세
           </Button>
 
-          <Button>{authenticated ? '로그아웃' : 'Data Viewer'}</Button>
+          <Button onClick={logout}>
+            {authenticated ? '로그아웃' : 'Data Viewer'}
+          </Button>
         </Grid>
       </Grid>
     </Grid>

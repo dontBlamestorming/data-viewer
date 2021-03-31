@@ -98,18 +98,6 @@ const SideBar = ({ onActiveImageChanged, baseURL, mode }) => {
   );
 };
 
-/*
-
-  숫자라면 ? 숫자로 비교해서 ~
-  문자라면 ? 사전적 순서대로 ~
-
-  1. isDir인지 아닌지 체크
-  2. 이름으로 비교해서 정렬
-  3. 숫자로비교 ~
-
-
-*/
-
 const compareByLocale = (a, b) => {
   const _a = a.path;
   const _b = b.path;
