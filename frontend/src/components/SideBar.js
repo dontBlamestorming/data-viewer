@@ -69,8 +69,8 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function SideBar(
-  {
+const SideBar = React.memo(
+  ({
     mobileOpen,
     setMobileOpen,
     onActiveImageChanged,
@@ -78,10 +78,8 @@ function SideBar(
     mode,
     activeFiles,
     renderTextFile,
-  },
-  props,
-) {
-  /*
+  }) => {
+    /*
     state ==
       {
         dirEntries: [
@@ -96,130 +94,127 @@ function SideBar(
         ],
       };
   */
-  const [state, setState] = useState({
-    dirEntries: [],
-    currentDirEntry: undefined,
-    currentIdx: undefined,
-  });
-  const [activedDirEnrty, setActivedDirEnrty] = useState({});
-  const { window } = props;
-  const classes = useStyles();
-  const theme = useTheme();
+    const [state, setState] = useState({
+      dirEntries: [],
+    });
+    const [activedDirEnrty, setActivedDirEnrty] = useState({});
+    const classes = useStyles();
+    const theme = useTheme();
 
-  useEffect(() => {
-    const initData = async () => {
-      const dirEntries = await fetchDirEntries();
-      setState({
-        ...state,
-        dirEntries,
-      });
-    };
+    useEffect(() => {
+      const initData = async () => {
+        const dirEntries = await fetchDirEntries();
+        setState({
+          ...state,
+          dirEntries,
+        });
+      };
 
-    initData();
-  }, []);
+      initData();
+    }, []);
 
-  const onClickFile = useCallback(
-    async (dirEntry, index) => {
-      dirEntry.isActive = !dirEntry.isActive;
+    const onClickFile = useCallback(
+      async (dirEntry) => {
+        dirEntry.isActive = !dirEntry.isActive;
 
-      switch (mode) {
-        case 'Default':
-          if (dirEntry.isActive) {
-            activedDirEnrty.isActive = false;
-            setActivedDirEnrty(dirEntry);
-          }
-          setState({ ...state, currentDirEntry: index });
-          onActiveImageChanged(dirEntry);
-          break;
+        switch (mode) {
+          case 'Default':
+            if (dirEntry.isActive) {
+              activedDirEnrty.isActive = false;
+              setActivedDirEnrty(dirEntry);
+            }
+            onActiveImageChanged(dirEntry);
+            break;
 
-        default:
-          break;
-      }
+          default:
+            break;
+        }
 
-      setState({ ...state, currentDirEntry: index });
-      onActiveImageChanged(dirEntry);
-    },
-    [onActiveImageChanged, state],
-  );
+        onActiveImageChanged(dirEntry);
+      },
+      [onActiveImageChanged, state],
+    );
 
-  const onClickDir = useCallback(
-    async (dirEntry) => {
-      if (!dirEntry.isFetched) {
-        dirEntry.dirEntries = await fetchDirEntries(dirEntry);
-        dirEntry.isFetched = true;
-      }
-      dirEntry.open = !dirEntry.open;
+    const onClickDir = useCallback(
+      async (dirEntry) => {
+        if (!dirEntry.isFetched) {
+          dirEntry.dirEntries = await fetchDirEntries(dirEntry);
+          dirEntry.isFetched = true;
+        }
+        dirEntry.open = !dirEntry.open;
+        console.log('onClickDir re assigned');
+        setState({ ...state });
+      },
+      [state, fetchDirEntries],
+    );
 
-      setState({ ...state });
-    },
-    [state, baseURL],
-  );
+    // window(body)를 ref하는 뜻
+    // const container = window.document.body;
 
-  // window(body)를 ref하는 뜻
-  const container =
-    window !== undefined ? () => window().document.body : undefined;
+    console.log('SideBar rendered');
 
-  return (
-    <>
-      <div className={classes.root}>
-        <CssBaseline />
+    return (
+      <>
+        <div className={classes.root}>
+          <CssBaseline />
 
-        <nav className={classes.drawer} aria-label="mailbox folders">
-          {/* Mobile */}
-          <Hidden smUp implementation="css">
-            <Drawer
-              container={container}
-              anchor={theme.direction === 'rtl' ? 'right' : 'left'}
-              open={mobileOpen || renderTextFile}
-              onClick={() => setMobileOpen(!mobileOpen)}
-              classes={{
-                paper: classes.drawerPaper,
-              }}
-              ModalProps={{
-                keepMounted: true, // Better open performance on mobile.
-              }}
-            >
-              <div>
-                <div className={classes.toolbar}>
-                  <List>
-                    {renderDirEntries(
-                      state.dirEntries,
-                      onClickDir,
-                      onClickFile,
-                    )}
-                  </List>
+          <nav className={classes.drawer} aria-label="mailbox folders">
+            {/* Mobile */}
+            <Hidden smUp implementation="css">
+              <Drawer
+                // container={container}
+                anchor={theme.direction === 'rtl' ? 'right' : 'left'}
+                open={mobileOpen || renderTextFile}
+                onClick={() => setMobileOpen(!mobileOpen)}
+                classes={{
+                  paper: classes.drawerPaper,
+                }}
+                ModalProps={{
+                  keepMounted: true, // Better open performance on mobile.
+                }}
+              >
+                <div>
+                  <div className={classes.toolbar}>
+                    <List>
+                      {renderDirEntries(
+                        state.dirEntries,
+                        onClickDir,
+                        onClickFile,
+                      )}
+                    </List>
+                  </div>
                 </div>
-              </div>
-            </Drawer>
-          </Hidden>
+              </Drawer>
+            </Hidden>
 
-          {/* labtop / desktop */}
-          <Hidden mdDown implementation="css">
-            <Drawer
-              classes={{
-                paper: classes.drawerPaper,
-              }}
-              variant="permanent"
-              open
-            >
-              <div>
-                <div className={classes.toolbar}>
-                  <List>
-                    {renderDirEntries(
-                      state.dirEntries,
-                      onClickDir,
-                      onClickFile,
-                    )}
-                  </List>
+            {/* labtop / desktop */}
+            <Hidden mdDown implementation="css">
+              <Drawer
+                classes={{
+                  paper: classes.drawerPaper,
+                }}
+                variant="permanent"
+                open
+              >
+                <div>
+                  <div className={classes.toolbar}>
+                    <List>
+                      {renderDirEntries(
+                        state.dirEntries,
+                        onClickDir,
+                        onClickFile,
+                      )}
+                    </List>
+                  </div>
                 </div>
-              </div>
-            </Drawer>
-          </Hidden>
-        </nav>
-      </div>
-    </>
-  );
-}
+              </Drawer>
+            </Hidden>
+          </nav>
+        </div>
+      </>
+    );
+  },
+);
 
 const compareByLocale = (a, b) => {
   const _a = a.path;
@@ -241,21 +236,16 @@ const renderDirEntries = (dirEntries, onClickDir, onClickFile) => {
 
       return compareIsDir || compareLocale;
     })
-    .map((item, index) => {
+    .map((item) => {
       return item.isDir ? (
         <Directory
-          key={index}
+          key={item.path}
           dirEntry={item}
           onClickDir={onClickDir}
           onClickFile={onClickFile}
         />
       ) : (
-        <File
-          key={index}
-          index={index}
-          dirEntry={item}
-          onClickFile={onClickFile}
-        />
+        <File key={item.path} dirEntry={item} onClickFile={onClickFile} />
       );
     });
 };
@@ -274,8 +264,9 @@ const renderDirEntries = (dirEntries, onClickDir, onClickFile) => {
 //   return res;
 // };
 
-const Directory = ({ dirEntry, onClickDir, onClickFile }) => {
+const Directory = React.memo(({ dirEntry, onClickDir, onClickFile }) => {
   const classes = useStyles();
+  console.log('Dir rerendered');
 
   return (
     <>
@@ -299,19 +290,19 @@ const Directory = ({ dirEntry, onClickDir, onClickFile }) => {
       )}
     </>
   );
-};
+});
 
-const File = ({ dirEntry, onClickFile, index }) => {
+const File = React.memo(({ dirEntry, onClickFile }) => {
   const extention = extractNameFromPath(dirEntry.path, '.');
   const classes = useStyles();
 
+  console.log('File rerendered');
   return (
     <ListItem
       button
-      id={index}
       className={`${classes.listItem} ${dirEntry.isActive && 'active'}`}
       onClick={() => {
-        onClickFile(dirEntry, index);
+        onClickFile(dirEntry);
       }}
     >
       <ListItemIcon className={classes.icon}>
@@ -320,7 +311,7 @@ const File = ({ dirEntry, onClickFile, index }) => {
       <ListItemText>{extractNameFromPath(dirEntry.path, '/')}</ListItemText>
     </ListItem>
   );
-};
+});
 
 const extractNameFromPath = (path, separator) => {
   const splitted = path.split(separator);
@@ -340,14 +331,6 @@ const fetchDirEntries = async (dirEntry) => {
   } catch (e) {
     throw e;
   }
-};
-
-SideBar.propTypes = {
-  /**
-   * Injected by the documentation to work in an iframe.
-   * You won't need it on your project.
-   */
-  window: PropTypes.func,
 };
 
 export default SideBar;

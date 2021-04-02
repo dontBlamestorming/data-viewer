@@ -44,22 +44,6 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const initaiState = {
-  scale: 1,
-  translation: { x: 0, y: 0 },
-  container: { width: 0, height: 0 },
-  translationBounds: {
-    xMin: 0,
-    xMax: 0,
-    yMin: 0,
-    yMax: 0,
-  },
-  imgCon: {
-    width: 0,
-    height: 0,
-  },
-};
-
 export default function Viewer({ mobileOpen, setMobileOpen }) {
   const baseURL = '/api/browse';
   const [mode, setMode] = useState('Default');
@@ -70,7 +54,23 @@ export default function Viewer({ mobileOpen, setMobileOpen }) {
     activeFiles.length ? activeFiles.length - 1 : 0,
   );
   const [anchorIdx, setAnchorIdx] = useState(0);
-  const [state, setState] = useState(initaiState);
+
+  const [state, setState] = useState({
+    scale: 1,
+    translation: { x: 0, y: 0 },
+    container: { width: 0, height: 0 },
+    translationBounds: {
+      xMin: 0,
+      xMax: 0,
+      yMin: 0,
+      yMax: 0,
+    },
+    imgCon: {
+      width: 0,
+      height: 0,
+    },
+  });
+
   const classes = useStyles();
   let imgConRef = useRef();
   let imgRef = useRef();
@@ -129,30 +129,62 @@ export default function Viewer({ mobileOpen, setMobileOpen }) {
   }, [increaseCurrentId, decreaseCurrentId]);
 
   useEffect(() => {
-    URL.revokeObjectURL(objectURL);
+    const loadImage = () => {
+      URL.revokeObjectURL(objectURL);
 
-    if (activeFiles.length > 0) {
-      API.get(`/browse${activeFiles[0].path}`, { responseType: 'blob' })
-        .then((res) => {
-          if (res.data.type === 'text/plain') {
-            res.data.text().then((text) => {
-              setRenderTextFile(text);
-              setObjectURL(null);
-            });
-          } else {
-            const objectURL = URL.createObjectURL(res.data);
-            setObjectURL(objectURL);
-            setRenderTextFile(null);
-          }
-        })
-        .catch((e) => {
-          throw e;
-        });
-    }
+      if (activeFiles.length > 0) {
+        API.get(`/browse${activeFiles[0].path}`, { responseType: 'blob' })
+          .then((res) => {
+            if (res.data.type === 'text/plain') {
+              res.data.text().then((text) => {
+                setRenderTextFile(text);
+                setObjectURL(null);
+              });
+            } else {
+              const objectURL = URL.createObjectURL(res.data);
+              setObjectURL(objectURL);
+              setRenderTextFile(null);
+            }
+          })
+          .catch((e) => {
+            throw e;
+          });
+      }
+    };
+    loadImage();
   }, [activeFiles, currentIdx]);
 
-  const onActiveImageChanged = (dirEntry) => {
-    /* 
+  useEffect(() => {
+    const calcZoomBounds = () => {
+      if (imgRef.current) {
+        const imgWidth = imgRef.current.clientWidth;
+        const imgHeight = imgRef.current.clientHeight;
+        const conWidth = imgConRef.current.clientWidth;
+        const conHeight = imgConRef.current.clientHeight;
+
+        const xDiff = conWidth - imgWidth * state.scale;
+        const yDiff = conHeight - imgHeight * state.scale;
+
+        setState({
+          ...state,
+          translationBounds: {
+            xMin: Math.min(0, xDiff),
+            yMin: Math.min(0, yDiff),
+            xMax: Math.max(0, xDiff),
+            yMax: Math.max(0, yDiff),
+          },
+        });
+      }
+    };
+
+    calcZoomBounds();
+  }, [imgRef.current, imgConRef.current, state.scale]);
+
+  console.log('rendered');
+
+  const onActiveImageChanged = useCallback(
+    (dirEntry) => {
+      /* 
       dirEntry = [
         {
           path: str,
@@ -161,45 +193,32 @@ export default function Viewer({ mobileOpen, setMobileOpen }) {
           isActive : true
         }
     */
-    switch (mode) {
-      case 'Tools':
-        if (dirEntry.isActive === true) {
-          setActiveFiles([...activeFiles, dirEntry]);
-        } else {
-          const images = activeFiles
-            .concat(dirEntry)
-            .filter((image) => image.isActive === true);
-          setActiveFiles(images);
-        }
-        break;
+      switch (mode) {
+        case 'Tools':
+          if (dirEntry.isActive === true) {
+            setActiveFiles([...activeFiles, dirEntry]);
+          } else {
+            const images = activeFiles
+              .concat(dirEntry)
+              .filter((image) => image.isActive === true);
+            setActiveFiles(images);
+          }
+          break;
 
-      default:
-        setActiveFiles([dirEntry]);
-    }
-  };
+        default:
+          setActiveFiles([dirEntry]);
+      }
+    },
+    [activeFiles, setActiveFiles],
+  );
 
   const onChangeZoom = useCallback(
     ({ scale, translation }) => {
-      const imgWidth = imgRef.current.clientWidth;
-      const imgHeight = imgRef.current.clientHeight;
-      const imgConWidth = imgConRef.current.clientWidth;
-      const imgConHeight = imgConRef.current.clientHeight;
-
-      const xDiff = imgConWidth - imgWidth * scale;
-      const yDiff = imgConHeight - imgHeight * scale;
-
       const newState = {
         ...state,
-        scale: scale,
-        translation: translation,
-        translationBounds: {
-          xMin: Math.min(0, xDiff),
-          xMax: Math.max(0, xDiff),
-          yMin: Math.min(0, yDiff),
-          yMax: Math.max(0, yDiff),
-        },
+        scale,
+        translation,
       };
-
       setState(newState);
     },
     [state, setState],
@@ -256,12 +275,13 @@ export default function Viewer({ mobileOpen, setMobileOpen }) {
             </Grid>
           )}
           {objectURL && (
-            <Grid item style={{ cursor: 'zoom-in' }}>
+            <Grid
+              item
+              style={{ cursor: 'zoom-in', heigth: 'calc(100vh - 60px)' }}
+            >
               <MapInteractionCSS
                 value={state}
                 onChange={onChangeZoom}
-                minScale={0.4}
-                maxScale={3}
                 translationBounds={{
                   xMin: state.translationBounds.xMin,
                   xMax: state.translationBounds.xMax,
@@ -269,16 +289,7 @@ export default function Viewer({ mobileOpen, setMobileOpen }) {
                   yMax: state.translationBounds.yMax,
                 }}
               >
-                <img
-                  alt="이미지"
-                  src={objectURL}
-                  ref={imgRef}
-                  style={{
-                    width: 'auto',
-                    height: 'calc(100vh - 60px)',
-                    border: '5px solid red',
-                  }}
-                />
+                <img alt="이미지" src={objectURL} ref={imgRef} />
               </MapInteractionCSS>
             </Grid>
           )}
