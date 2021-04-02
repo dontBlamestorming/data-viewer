@@ -4,33 +4,41 @@ import { Link } from 'react-router-dom';
 import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
 import { makeStyles } from '@material-ui/core';
+import IconButton from '@material-ui/core/IconButton';
+import MenuIcon from '@material-ui/icons/Menu';
 
 import logoImage from '../assets/logo.png';
 
-export default function Header({ authenticated, logout }) {
-  /**
-   * Todo :
-   * - 로그아웃 Btn 클릭하면 token delete and '/'로 던지기
-   * - authenticated된 경우 버튼 텍스트 변경
-   */
+const useStyles = makeStyles((theme) => ({
+  header: {
+    height: '60px',
+    position: 'relative',
+    backgroundColor: 'rgb(248, 249, 250)',
+    display: 'flex',
+    boxShadow: 'rgb(0 0 0 / 16%) 0px 3px 6px',
+    zIndex: '999',
+  },
+  contents: {
+    marginBottom: '10px',
+  },
+  logoImage: {
+    maxHeight: '25px',
+  },
+  // Mobile
+  menuButton: {
+    marginRight: theme.spacing(2),
+    [theme.breakpoints.up('md')]: {
+      display: 'none',
+    },
+  },
+}));
 
-  const useStyles = makeStyles(() => ({
-    header: {
-      height: '60px',
-      position: 'relative',
-      backgroundColor: 'rgb(248, 249, 250)',
-      display: 'flex',
-      boxShadow: 'rgb(0 0 0 / 16%) 0px 3px 6px',
-      zIndex: '999',
-    },
-    contents: {
-      marginBottom: '10px',
-    },
-    logoImage: {
-      maxHeight: '25px',
-    },
-  }));
-
+export default function Header({
+  authenticated,
+  logout,
+  mobileOpen,
+  setMobileOpen,
+}) {
   const classes = useStyles();
 
   return (
@@ -39,13 +47,27 @@ export default function Header({ authenticated, logout }) {
       className={classes.header}
       alignItems="flex-end"
       justify="center"
+      xs={12}
     >
       <Grid
         container
         className={classes.contents}
-        xs={11}
+        alignItems="center"
         justify="space-between"
+        xs={11}
       >
+        <IconButton
+          color="inherit"
+          aria-label="open drawer"
+          edge="start"
+          className={classes.menuButton}
+          onClick={() => {
+            setMobileOpen(!mobileOpen);
+          }}
+        >
+          <MenuIcon />
+        </IconButton>
+
         <Grid item>
           <Link to="/">
             <img
@@ -56,15 +78,7 @@ export default function Header({ authenticated, logout }) {
           </Link>
         </Grid>
 
-        <Grid>
-          <Button
-            onClick={() => {
-              alert('파이팅!');
-            }}
-          >
-            써머캣 만세
-          </Button>
-
+        <Grid item>
           <Button onClick={logout}>
             {authenticated ? '로그아웃' : 'Data Viewer'}
           </Button>

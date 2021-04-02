@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 
-import { makeStyles } from '@material-ui/core';
+import { makeStyles, useTheme } from '@material-ui/core';
 import Grid from '@material-ui/core/Grid';
+import Toolbar from '@material-ui/core/Toolbar';
+import Typography from '@material-ui/core/Typography';
 
 import SideBar from '../components/SideBar';
 import Tools from '../components/Tools';
@@ -10,6 +12,37 @@ import { MapInteractionCSS } from 'react-map-interaction';
 
 import API from '../api/index';
 import '../styles/Viewer.css';
+
+import { TransformComponent, TransformWrapper } from 'react-zoom-pan-pinch'; // need to delete
+
+const useStyles = makeStyles((theme) => ({
+  viewer: {
+    position: 'relative',
+    width: '100%',
+  },
+  imageViewer: {
+    height: 'calc(100vh - 60px)',
+    overflow: 'hidden',
+    touchAction: 'none',
+    fontSize: '3rem',
+    fontStyle: 'italic',
+    // 모바일 터치 이벤트 제한
+    userSelect: 'none',
+    WebkitUserSelect: 'none',
+    MozUserSelect: 'none',
+    msUserSelect: 'none',
+    WebkitTouchCallout: 'none',
+    [theme.breakpoints.down('sm')]: {
+      maxWidth: '100%',
+      flexBasis: '100%',
+    },
+  },
+  sideBar: {
+    [theme.breakpoints.down('sm')]: {
+      display: 'none',
+    },
+  },
+}));
 
 const initaiState = {
   scale: 1,
@@ -27,7 +60,7 @@ const initaiState = {
   },
 };
 
-export default function Viewer() {
+export default function Viewer({ mobileOpen, setMobileOpen }) {
   const baseURL = '/api/browse';
   const [mode, setMode] = useState('Default');
   const [activeFiles, setActiveFiles] = useState([]);
@@ -38,6 +71,7 @@ export default function Viewer() {
   );
   const [anchorIdx, setAnchorIdx] = useState(0);
   const [state, setState] = useState(initaiState);
+  const classes = useStyles();
   let imgConRef = useRef();
   let imgRef = useRef();
 
@@ -144,34 +178,6 @@ export default function Viewer() {
     }
   };
 
-  const useStyles = makeStyles(() => ({
-    viewer: {
-      position: 'relative',
-      width: '100%',
-    },
-    sideBar: {
-      paddingTop: '18px',
-      backgroundColor: 'rgb(30, 40, 72)',
-      overflow: 'scroll',
-      height: 'calc(100vh - 60px)',
-      fontSize: '1rem',
-    },
-    imageViewer: {
-      width: '100%',
-      height: 'calc(100vh - 60px)',
-      overflow: 'hidden',
-      touchAction: 'none',
-      // 모바일 터치 이벤트 제한
-      userSelect: 'none',
-      WebkitUserSelect: 'none',
-      MozUserSelect: 'none',
-      msUserSelect: 'none',
-      WebkitTouchCallout: 'none',
-    },
-  }));
-
-  const classes = useStyles();
-
   const onChangeZoom = useCallback(
     ({ scale, translation }) => {
       const imgWidth = imgRef.current.clientWidth;
@@ -179,28 +185,18 @@ export default function Viewer() {
       const imgConWidth = imgConRef.current.clientWidth;
       const imgConHeight = imgConRef.current.clientHeight;
 
-      const imageRatio = imgHeight / imgWidth;
-
-      let width = Math.min(imgWidth, imgConWidth);
-      let height = width * imageRatio;
-
-      if (height > imgConHeight) {
-        width = imgConHeight / imageRatio;
-        height = imgConHeight;
-      }
-
-      const newScale = width / imgWidth;
-      const UpdatedScale = Math.max(scale, newScale);
+      const xDiff = imgConWidth - imgWidth * scale;
+      const yDiff = imgConHeight - imgHeight * scale;
 
       const newState = {
         ...state,
         scale: scale,
         translation: translation,
         translationBounds: {
-          xMin: -1 * (imgWidth * UpdatedScale - imgConWidth),
-          xMax: 0,
-          yMin: -1 * (imgHeight * UpdatedScale - imgConHeight),
-          yMax: 0,
+          xMin: Math.min(0, xDiff),
+          xMax: Math.max(0, xDiff),
+          yMin: Math.min(0, yDiff),
+          yMax: Math.max(0, yDiff),
         },
       };
 
@@ -212,16 +208,37 @@ export default function Viewer() {
   return (
     <Grid container xs={12} className={classes.viewer}>
       {/* Side Bar */}
-      <Grid item xs={3} className={classes.sideBar}>
+      <Grid
+        item
+        className={classes.sideBar}
+        xs={3}
+        style={{
+          border: '5px solid pink',
+        }}
+      >
         <SideBar
           onActiveImageChanged={onActiveImageChanged}
           baseURL={baseURL}
           mode={mode}
+          mobileOpen={mobileOpen}
+          setMobileOpen={setMobileOpen}
+          activeFiles={activeFiles}
+          renderTextFile={renderTextFile}
         />
       </Grid>
 
       {/* Viewer */}
-      <Grid item xs={9} className={classes.imageViewer}>
+      <Grid
+        container
+        item
+        xs={9}
+        className={classes.imageViewer}
+        justify="center"
+        alignItems="center"
+        style={{
+          border: '5px solid green',
+        }}
+      >
         <div
           style={{
             position: 'relative',
@@ -229,20 +246,21 @@ export default function Viewer() {
             height: 'calc(100vh - 60px)',
             fontSize: '3rem',
             fontStyle: 'italic',
+            border: '5px solid red',
           }}
           ref={imgConRef}
         >
           {renderTextFile && (
-            <Grid container justify="center" alignItems="center">
+            <Grid item>
               <pre>{renderTextFile}</pre>
             </Grid>
           )}
           {objectURL && (
-            <>
+            <Grid item style={{ cursor: 'zoom-in' }}>
               <MapInteractionCSS
                 value={state}
                 onChange={onChangeZoom}
-                minScale={1}
+                minScale={0.4}
                 maxScale={3}
                 translationBounds={{
                   xMin: state.translationBounds.xMin,
@@ -256,14 +274,13 @@ export default function Viewer() {
                   src={objectURL}
                   ref={imgRef}
                   style={{
-                    width: '100%',
-                    maxWidth: '100%',
-                    height: 'auto',
-                    cursor: 'grab',
+                    width: 'auto',
+                    height: 'calc(100vh - 60px)',
+                    border: '5px solid red',
                   }}
                 />
               </MapInteractionCSS>
-            </>
+            </Grid>
           )}
         </div>
       </Grid>

@@ -18,6 +18,7 @@ const storage = sessionStorage;
 function App() {
   const [user, setUser] = useState(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const authenticated = user !== null;
 
   const login = async (token) => {
@@ -55,7 +56,13 @@ function App() {
 
   return (
     <div className="App">
-      <Header user={user} authenticated={authenticated} logout={logout} />
+      <Header
+        user={user}
+        authenticated={authenticated}
+        logout={logout}
+        mobileOpen={mobileOpen}
+        setMobileOpen={setMobileOpen}
+      />
       {isLoaded ? (
         <Switch>
           <Route
@@ -73,7 +80,13 @@ function App() {
           <AuthRoute
             authenticated={authenticated}
             path="/viewer"
-            render={(props) => <Viewer {...props} />}
+            render={(props) => (
+              <Viewer
+                mobileOpen={mobileOpen}
+                setMobileOpen={setMobileOpen}
+                {...props}
+              />
+            )}
           />
         </Switch>
       ) : (
