@@ -2,8 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 
 import { makeStyles, useTheme } from '@material-ui/core';
 import Grid from '@material-ui/core/Grid';
-import Toolbar from '@material-ui/core/Toolbar';
-import Typography from '@material-ui/core/Typography';
+import Button from '@material-ui/core/Button';
 
 import SideBar from '../components/SideBar';
 import Tools from '../components/Tools';
@@ -12,8 +11,6 @@ import { MapInteractionCSS } from 'react-map-interaction';
 
 import API from '../api/index';
 import '../styles/Viewer.css';
-
-import { TransformComponent, TransformWrapper } from 'react-zoom-pan-pinch'; // need to delete
 
 const useStyles = makeStyles((theme) => ({
   viewer: {
@@ -54,7 +51,6 @@ export default function Viewer({ mobileOpen, setMobileOpen }) {
     activeFiles.length ? activeFiles.length - 1 : 0,
   );
   const [anchorIdx, setAnchorIdx] = useState(0);
-
   const [state, setState] = useState({
     scale: 1,
     translation: { x: 0, y: 0 },
@@ -70,6 +66,8 @@ export default function Viewer({ mobileOpen, setMobileOpen }) {
       height: 0,
     },
   });
+  console.log(state.translation.x);
+  console.log(state.translation.y);
 
   const classes = useStyles();
   let imgConRef = useRef();
@@ -86,6 +84,10 @@ export default function Viewer({ mobileOpen, setMobileOpen }) {
       setCurrentIdx(Math.max(0, currentIdx - 1));
     }
   }, [currentIdx, activeFiles]);
+
+  const initTranslation = useCallback(() =>
+    setState({ ...state, translation: { x: 0, y: 0 } }),
+  );
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -104,6 +106,7 @@ export default function Viewer({ mobileOpen, setMobileOpen }) {
 
         case ' ':
           e.preventDefault();
+          initTranslation();
           setAnchorIdx(currentIdx);
           setCurrentIdx(0);
           break;
@@ -180,8 +183,6 @@ export default function Viewer({ mobileOpen, setMobileOpen }) {
     calcZoomBounds();
   }, [imgRef.current, imgConRef.current, state.scale]);
 
-  console.log('rendered');
-
   const onActiveImageChanged = useCallback(
     (dirEntry) => {
       /* 
@@ -227,14 +228,11 @@ export default function Viewer({ mobileOpen, setMobileOpen }) {
   return (
     <Grid container xs={12} className={classes.viewer}>
       {/* Side Bar */}
-      <Grid
-        item
-        className={classes.sideBar}
-        xs={3}
-        style={{
-          border: '5px solid pink',
-        }}
-      >
+
+      <Grid item className={classes.sideBar} xs={3}>
+        <Button onClick={initTranslation} style={{ marginLeft: '20rem' }}>
+          초기화
+        </Button>
         <SideBar
           onActiveImageChanged={onActiveImageChanged}
           baseURL={baseURL}
@@ -254,9 +252,6 @@ export default function Viewer({ mobileOpen, setMobileOpen }) {
         className={classes.imageViewer}
         justify="center"
         alignItems="center"
-        style={{
-          border: '5px solid green',
-        }}
       >
         <div
           style={{
@@ -265,7 +260,6 @@ export default function Viewer({ mobileOpen, setMobileOpen }) {
             height: 'calc(100vh - 60px)',
             fontSize: '3rem',
             fontStyle: 'italic',
-            border: '5px solid red',
           }}
           ref={imgConRef}
         >
@@ -282,12 +276,12 @@ export default function Viewer({ mobileOpen, setMobileOpen }) {
               <MapInteractionCSS
                 value={state}
                 onChange={onChangeZoom}
-                translationBounds={{
-                  xMin: state.translationBounds.xMin,
-                  xMax: state.translationBounds.xMax,
-                  yMin: state.translationBounds.yMin,
-                  yMax: state.translationBounds.yMax,
-                }}
+                // translationBounds={{
+                //   xMin: state.translationBounds.xMin,
+                //   xMax: state.translationBounds.xMax,
+                //   yMin: state.translationBounds.yMin,
+                //   yMax: state.translationBounds.yMax,
+                // }}
               >
                 <img alt="이미지" src={objectURL} ref={imgRef} />
               </MapInteractionCSS>
@@ -295,24 +289,6 @@ export default function Viewer({ mobileOpen, setMobileOpen }) {
           )}
         </div>
       </Grid>
-
-      {/* Tools Space */}
-      {/* <Grid item xs={2}>
-        업데이트중
-      </Grid> */}
     </Grid>
   );
 }
-//     {/* tools space */}
-//     {mode === 'Tools' && (
-//       <div className="images__tools">
-//         <Tools
-//           activeFiles={activeFiles}
-//           setActiveFiles={setActiveFiles}
-//           currentIdx={currentIdx}
-//           setCurrentIdx={setCurrentIdx}
-//         />
-//       </div>
-//     )}
-//   </div>
-// </div>
