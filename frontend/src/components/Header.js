@@ -1,6 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
+import { observer } from 'mobx-react-lite';
+import userStore from '../stores/userStore';
+
 import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
 import { makeStyles } from '@material-ui/core';
@@ -33,12 +36,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function Header({
-  authenticated,
-  logout,
-  mobileOpen,
-  setMobileOpen,
-}) {
+const Header = observer(({ mobileOpen, setMobileOpen }) => {
   const classes = useStyles();
 
   return (
@@ -47,6 +45,7 @@ export default function Header({
       className={classes.header}
       alignItems="flex-end"
       justify="center"
+      item
       xs={12}
     >
       <Grid
@@ -54,6 +53,7 @@ export default function Header({
         className={classes.contents}
         alignItems="center"
         justify="space-between"
+        item
         xs={11}
       >
         <IconButton
@@ -79,11 +79,13 @@ export default function Header({
         </Grid>
 
         <Grid item>
-          <Button onClick={logout}>
-            {authenticated ? '로그아웃' : 'Data Viewer'}
+          <Button onClick={userStore.logout}>
+            {userStore.user ? '로그아웃' : 'Data Viewer'}
           </Button>
         </Grid>
       </Grid>
     </Grid>
   );
-}
+});
+
+export default Header;

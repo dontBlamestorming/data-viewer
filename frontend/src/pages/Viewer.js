@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { observer } from 'mobx-react-lite';
 
 import { makeStyles, useTheme } from '@material-ui/core';
 import Grid from '@material-ui/core/Grid';
@@ -41,7 +42,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function Viewer({ mobileOpen, setMobileOpen }) {
+const Viewer = observer(({ mobileOpen, setMobileOpen }) => {
   const baseURL = '/api/browse';
   const [mode, setMode] = useState('Default');
   const [activeFiles, setActiveFiles] = useState([]);
@@ -55,23 +56,9 @@ export default function Viewer({ mobileOpen, setMobileOpen }) {
     scale: 1,
     translation: { x: 0, y: 0 },
     container: { width: 0, height: 0 },
-    translationBounds: {
-      xMin: 0,
-      xMax: 0,
-      yMin: 0,
-      yMax: 0,
-    },
-    imgCon: {
-      width: 0,
-      height: 0,
-    },
   });
-  console.log(state.translation.x);
-  console.log(state.translation.y);
 
   const classes = useStyles();
-  let imgConRef = useRef();
-  let imgRef = useRef();
 
   const increaseCurrentId = useCallback(() => {
     if (activeFiles.length > 0) {
@@ -157,32 +144,6 @@ export default function Viewer({ mobileOpen, setMobileOpen }) {
     loadImage();
   }, [activeFiles, currentIdx]);
 
-  useEffect(() => {
-    const calcZoomBounds = () => {
-      if (imgRef.current) {
-        const imgWidth = imgRef.current.clientWidth;
-        const imgHeight = imgRef.current.clientHeight;
-        const conWidth = imgConRef.current.clientWidth;
-        const conHeight = imgConRef.current.clientHeight;
-
-        const xDiff = conWidth - imgWidth * state.scale;
-        const yDiff = conHeight - imgHeight * state.scale;
-
-        setState({
-          ...state,
-          translationBounds: {
-            xMin: Math.min(0, xDiff),
-            yMin: Math.min(0, yDiff),
-            xMax: Math.max(0, xDiff),
-            yMax: Math.max(0, yDiff),
-          },
-        });
-      }
-    };
-
-    calcZoomBounds();
-  }, [imgRef.current, imgConRef.current, state.scale]);
-
   const onActiveImageChanged = useCallback(
     (dirEntry) => {
       /* 
@@ -261,7 +222,6 @@ export default function Viewer({ mobileOpen, setMobileOpen }) {
             fontSize: '3rem',
             fontStyle: 'italic',
           }}
-          ref={imgConRef}
         >
           {renderTextFile && (
             <Grid item>
@@ -273,17 +233,8 @@ export default function Viewer({ mobileOpen, setMobileOpen }) {
               item
               style={{ cursor: 'zoom-in', heigth: 'calc(100vh - 60px)' }}
             >
-              <MapInteractionCSS
-                value={state}
-                onChange={onChangeZoom}
-                // translationBounds={{
-                //   xMin: state.translationBounds.xMin,
-                //   xMax: state.translationBounds.xMax,
-                //   yMin: state.translationBounds.yMin,
-                //   yMax: state.translationBounds.yMax,
-                // }}
-              >
-                <img alt="이미지" src={objectURL} ref={imgRef} />
+              <MapInteractionCSS value={state} onChange={onChangeZoom}>
+                <img alt="이미지" src={objectURL} />
               </MapInteractionCSS>
             </Grid>
           )}
@@ -291,4 +242,6 @@ export default function Viewer({ mobileOpen, setMobileOpen }) {
       </Grid>
     </Grid>
   );
-}
+});
+
+export default Viewer;

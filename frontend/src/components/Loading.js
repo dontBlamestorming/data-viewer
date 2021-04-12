@@ -5,7 +5,7 @@ import '../styles/Loading.css';
 const Loading = () => {
   return (
     <div className="LoadingWrap">
-      <img src={LoadingImg} alt="loading" />
+      <img src={LoadingImg} width={100} height={100} alt="loading" />
     </div>
   );
 };

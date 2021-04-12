@@ -1,5 +1,7 @@
-.LoadingWrap{
-    display: flex;
-    justify-content: center;
-    width:100%;
+.LoadingWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  height: 100vh;
 }
