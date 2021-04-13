@@ -1,49 +1,17 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 
-import { makeStyles, useTheme } from '@material-ui/core';
+import { makeStyles } from '@material-ui/core';
 import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
 
 import SideBar from '../components/SideBar';
-import Tools from '../components/Tools';
 
 import { MapInteractionCSS } from 'react-map-interaction';
 
 import API from '../api/index';
-import '../styles/Viewer.css';
-
-const useStyles = makeStyles((theme) => ({
-  viewer: {
-    position: 'relative',
-    width: '100%',
-  },
-  imageViewer: {
-    height: 'calc(100vh - 60px)',
-    overflow: 'hidden',
-    touchAction: 'none',
-    fontSize: '3rem',
-    fontStyle: 'italic',
-    // 모바일 터치 이벤트 제한
-    userSelect: 'none',
-    WebkitUserSelect: 'none',
-    MozUserSelect: 'none',
-    msUserSelect: 'none',
-    WebkitTouchCallout: 'none',
-    [theme.breakpoints.down('sm')]: {
-      maxWidth: '100%',
-      flexBasis: '100%',
-    },
-  },
-  sideBar: {
-    [theme.breakpoints.down('sm')]: {
-      display: 'none',
-    },
-  },
-}));
 
 const Viewer = observer(({ mobileOpen, setMobileOpen }) => {
-  const baseURL = '/api/browse';
   const [mode, setMode] = useState('Default');
   const [activeFiles, setActiveFiles] = useState([]);
   const [renderTextFile, setRenderTextFile] = useState('');
@@ -187,16 +155,14 @@ const Viewer = observer(({ mobileOpen, setMobileOpen }) => {
   );
 
   return (
-    <Grid container xs={12} className={classes.viewer}>
+    <Grid container xs={12} className={classes.container}>
       {/* Side Bar */}
-
       <Grid item className={classes.sideBar} xs={3}>
         <Button onClick={initTranslation} style={{ marginLeft: '20rem' }}>
           초기화
         </Button>
         <SideBar
           onActiveImageChanged={onActiveImageChanged}
-          baseURL={baseURL}
           mode={mode}
           mobileOpen={mobileOpen}
           setMobileOpen={setMobileOpen}
@@ -206,33 +172,18 @@ const Viewer = observer(({ mobileOpen, setMobileOpen }) => {
       </Grid>
 
       {/* Viewer */}
-      <Grid
-        container
-        item
-        xs={9}
-        className={classes.imageViewer}
-        justify="center"
-        alignItems="center"
-      >
-        <div
-          style={{
-            position: 'relative',
-            width: '100%',
-            height: 'calc(100vh - 60px)',
-            fontSize: '3rem',
-            fontStyle: 'italic',
-          }}
-        >
+      <Grid container item xs={9} className={classes.container__dataViewer}>
+        <div className={classes.dataViewer}>
+          {/* TEXT */}
           {renderTextFile && (
             <Grid item>
               <pre>{renderTextFile}</pre>
             </Grid>
           )}
+
+          {/* IMAGE */}
           {objectURL && (
-            <Grid
-              item
-              style={{ cursor: 'zoom-in', heigth: 'calc(100vh - 60px)' }}
-            >
+            <Grid item className={classes.container__dataViewer__img}>
               <MapInteractionCSS value={state} onChange={onChangeZoom}>
                 <img alt="이미지" src={objectURL} />
               </MapInteractionCSS>
@@ -243,5 +194,48 @@ const Viewer = observer(({ mobileOpen, setMobileOpen }) => {
     </Grid>
   );
 });
+
+const useStyles = makeStyles((theme) => ({
+  container: {
+    position: 'relative',
+    width: '100%',
+  },
+  container__dataViewer: {
+    height: 'calc(100vh - 60px)',
+    overflow: 'hidden',
+    touchAction: 'none',
+    fontSize: '3rem',
+    fontStyle: 'italic',
+    justify: 'center',
+    alignItems: 'center',
+
+    // 모바일 터치 이벤트 제한
+    userSelect: 'none',
+    WebkitUserSelect: 'none',
+    MozUserSelect: 'none',
+    msUserSelect: 'none',
+    WebkitTouchCallout: 'none',
+    [theme.breakpoints.down('sm')]: {
+      maxWidth: '100%',
+      flexBasis: '100%',
+    },
+  },
+  dataViewer: {
+    position: 'relative',
+    width: '100%',
+    height: 'calc(100vh - 60px)',
+    fontSize: '3rem',
+    fontStyle: 'italic',
+  },
+  container__dataViewer__img: {
+    cursor: 'zoom-in',
+    heigth: 'calc(100vh - 60px)',
+  },
+  sideBar: {
+    [theme.breakpoints.down('sm')]: {
+      display: 'none',
+    },
+  },
+}));
 
 export default Viewer;

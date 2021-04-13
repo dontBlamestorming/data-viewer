@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
-import API from '../api/index';
+import { toJS } from 'mobx';
+import { observer } from 'mobx-react-lite';
+import dataStore from '../stores/dataStore';
 
 import TreeView from '@material-ui/lab/TreeView';
 import TreeItem from '@material-ui/lab/TreeItem';
 
-import { makeStyles, useTheme } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/core/styles';
 import Drawer from '@material-ui/core/Drawer';
 import Hidden from '@material-ui/core/Hidden';
 
@@ -14,75 +16,23 @@ import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import ImageIcon from '@material-ui/icons/Image';
 import TextFieldsIcon from '@material-ui/icons/TextFields';
 
-const SideBar = React.memo(({ onActiveImageChanged, mode }) => {
-  /*
-    state ==
-      {
-        dirEntries: [
-          {
-            path: String,
-            size: Number,
-            isDir: Boolean,
-            dirEntries: [
-              ...
-            ],
-          },
-        ],
-      };
-  */
-  const [state, setState] = useState({ dirEntries: [] });
+const SideBar = observer(({ onActiveImageChanged }) => {
   const [expanded, setExpanded] = useState(['root']);
-  const [activedDirEnrty, setActivedDirEnrty] = useState({});
   const classes = useStyles();
 
-  useEffect(() => {
-    const initData = async () => {
-      const dirEntries = await fetchDirEntries();
-      setState({
-        ...state,
-        dirEntries,
-      });
-    };
+  useEffect(() => dataStore.initializeData(), []);
 
-    initData();
-  }, []);
+  const onClick = (dirEntry) => {
+    if (dirEntry.isDir) return dataStore.onClickDirectory(dirEntry);
 
-  const onClick = useCallback(
-    async (dirEntry) => {
-      if (dirEntry.isDir) {
-        // When click directory
-        dirEntry.dirEntries = await fetchDirEntries(dirEntry);
-        dirEntry.isFetched = true;
-        dirEntry.open = !dirEntry.open;
+    dirEntry.isActive = !dirEntry.isActive;
+    onActiveImageChanged(dirEntry);
+  };
 
-        setState({ ...state });
-        return;
-      }
-
-      dirEntry.isActive = !dirEntry.isActive;
-
-      switch (mode) {
-        case 'Default':
-          if (dirEntry.isActive) {
-            activedDirEnrty.isActive = false;
-            setActivedDirEnrty(dirEntry);
-          }
-          onActiveImageChanged(dirEntry);
-          break;
-
-        default:
-          break;
-      }
-
-      onActiveImageChanged(dirEntry);
-    },
-    [activedDirEnrty, mode, onActiveImageChanged, state],
-  );
-
-  const manageExpandedData = (targetId) => {
-    const newExpandedId = expanded.includes(targetId)
-      ? expanded.filter((id) => id !== targetId)
-      : [...expanded, targetId];
+  const manageExpandedData = (nodeId) => {
+    const newExpandedId = expanded.includes(nodeId)
+      ? expanded.filter((id) => id !== nodeId)
+      : [...expanded, nodeId];
 
     setExpanded(newExpandedId);
   };
@@ -101,9 +51,10 @@ const SideBar = React.memo(({ onActiveImageChanged, mode }) => {
               <div className={classes.toolbar}>
                 <TreeView
                   expanded={expanded}
-                  onNodeSelect={(e, id) => manageExpandedData(id)}
+                  // expanded={dataStore.expanded}
+                  onNodeSelect={(event, nodeId) => manageExpandedData(nodeId)}
                 >
-                  {renderDirEntries(state.dirEntries, onClick)}
+                  {renderDirEntries(dataStore.state.dirEntries, onClick)}
                 </TreeView>
               </div>
             </Drawer>
@@ -115,9 +66,9 @@ const SideBar = React.memo(({ onActiveImageChanged, mode }) => {
 });
 
 const renderDirEntries = (dirEntries, onClick) => {
-  const sortedDirEntries = sortDirEntries(dirEntries);
+  // const sortedDirEntries = sortDirEntries(dirEntries);
 
-  return sortedDirEntries.map((dirEntry) => {
+  return dirEntries.map((dirEntry) => {
     const childDirEntry = dirEntry.dirEntries ? dirEntry.dirEntries : null;
     const listName = extractNameFromPath(dirEntry.path, '/');
     const extentions = extractNameFromPath(dirEntry.path, '.');
@@ -150,47 +101,47 @@ const renderDirEntries = (dirEntries, onClick) => {
   });
 };
 
-const compareByLocale = (a, b) => {
-  const _a = a.path;
-  const _b = b.path;
+// const compareByLocale = (a, b) => {
+//   const _a = a.path;
+//   const _b = b.path;
 
-  return _a.localeCompare(_b, undefined, {
-    numeric: true,
-    sensitivity: 'base',
-  });
-};
+//   return _a.localeCompare(_b, undefined, {
+//     numeric: true,
+//     sensitivity: 'base',
+//   });
+// };
 
-const compareByIsDir = (a, b) => b.isDir - a.isDir;
+// const compareByIsDir = (a, b) => b.isDir - a.isDir;
 
-const sortDirEntries = (dirEntries) => {
-  dirEntries.sort((a, b) => {
-    const compareIsDir = compareByIsDir(a, b);
-    const compareLocale = compareByLocale(a, b);
+// const sortDirEntries = (dirEntries) => {
+//   dirEntries.sort((a, b) => {
+//     const compareIsDir = compareByIsDir(a, b);
+//     const compareLocale = compareByLocale(a, b);
 
-    return compareIsDir || compareLocale;
-  });
+//     return compareIsDir || compareLocale;
+//   });
 
-  return dirEntries;
-};
+//   return dirEntries;
+// };
 
 const extractNameFromPath = (path, separator) => {
   const splitted = path.split(separator);
   return splitted[splitted.length - 1];
 };
 
-const fetchDirEntries = async (dirEntry) => {
-  try {
-    const res = await API.get(`/browse${dirEntry ? dirEntry.path : ''}`);
-    return res.data.map((val) => ({
-      path: val.path,
-      size: val.size,
-      isDir: val.isDir,
-      parent: dirEntry,
-    }));
-  } catch (e) {
-    throw e;
-  }
-};
+// const fetchDirEntries = async (dirEntry) => {
+//   try {
+//     const res = await API.get(`/browse${dirEntry ? dirEntry.path : ''}`);
+//     return res.data.map((val) => ({
+//       path: val.path,
+//       size: val.size,
+//       isDir: val.isDir,
+//       parent: dirEntry,
+//     }));
+//   } catch (e) {
+//     throw e;
+//   }
+// };
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -273,3 +224,58 @@ export default SideBar;
     </div>
   </Drawer>
 </Hidden> */
+
+/*
+    state ==
+      {
+        dirEntries: [
+          {
+            path: String,
+            size: Number,
+            isDir: Boolean,
+            dirEntries: [
+              ...
+            ],
+          },
+        ],
+      };
+  */
+
+// const [state, setState] = useState({ dirEntries: [] });
+// const [expanded, setExpanded] = useState(['root']);
+// const [activedDirEnrty, setActivedDirEnrty] = useState({});
+
+// useEffect(() => {
+//   const initData = async () => {
+//     const dirEntries = await fetchDirEntries();
+//     setState({
+//       ...state,
+//       dirEntries,
+//     });
+//   };
+
+//   initData();
+// }, []);
+
+// When click directory
+// dirEntry.dirEntries = await dataStore.fetchDirEntries(dirEntry);
+// dirEntry.isFetched = true;
+// dirEntry.open = !dirEntry.open;
+
+// setState({ ...state });
+// dataStore.setState({ ...dataStore.state });
+
+// switch (mode) {
+//   case 'Default':
+//     if (dirEntry.isActive) {
+//       dataStore.activedDirEnrty.isActive = false;
+//       dataStore.setActivedDirEnrty(dirEntry);
+//       // setActivedDirEnrty(dirEntry);
+//     }
+
+//     onActiveImageChanged(dirEntry);
+//     break;
+
+//   default:
+//     break;
+// }
