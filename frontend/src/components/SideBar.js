@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 
-import { toJS } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import dataStore from '../stores/dataStore';
 
@@ -8,6 +7,7 @@ import TreeView from '@material-ui/lab/TreeView';
 import TreeItem from '@material-ui/lab/TreeItem';
 
 import { makeStyles } from '@material-ui/core/styles';
+import Grid from '@material-ui/core/Grid';
 import Drawer from '@material-ui/core/Drawer';
 import Hidden from '@material-ui/core/Hidden';
 
@@ -16,59 +16,84 @@ import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import ImageIcon from '@material-ui/icons/Image';
 import TextFieldsIcon from '@material-ui/icons/TextFields';
 
-const SideBar = observer(({ onActiveImageChanged }) => {
-  const [expanded, setExpanded] = useState(['root']);
-  const classes = useStyles();
+const SideBar = observer(
+  ({ onActiveImageChanged, mobileOpen, setMobileOpen }) => {
+    const [expanded, setExpanded] = useState(['root']);
+    const classes = useStyles();
 
-  useEffect(() => dataStore.initializeData(), []);
+    useEffect(() => dataStore.initializeData(), []);
 
-  const onClick = (dirEntry) => {
-    if (dirEntry.isDir) return dataStore.onClickDirectory(dirEntry);
+    const onClick = async (dirEntry) => {
+      if (!dirEntry.isDir) {
+        dirEntry.isActive = !dirEntry.isActive;
+        onActiveImageChanged(dirEntry);
+        return;
+      }
 
-    dirEntry.isActive = !dirEntry.isActive;
-    onActiveImageChanged(dirEntry);
-  };
+      dirEntry.dirEntries = await dataStore.fetchDirEntries(dirEntry);
+      dirEntry.isFetched = true;
+      dirEntry.open = !dirEntry.open;
+      dataStore.setState({ ...dataStore.state });
+    };
 
-  const manageExpandedData = (nodeId) => {
-    const newExpandedId = expanded.includes(nodeId)
-      ? expanded.filter((id) => id !== nodeId)
-      : [...expanded, nodeId];
+    const manageExpandedNode = (nodeId) => {
+      const newExpandedId = expanded.includes(nodeId)
+        ? expanded.filter((id) => id !== nodeId)
+        : [...expanded, nodeId];
 
-    setExpanded(newExpandedId);
-  };
+      setExpanded(newExpandedId);
+    };
 
-  return (
-    <>
-      <div className={classes.root}>
-        <nav className={classes.drawer} aria-label="mailbox folders">
-          {/* Labtop / Desktop */}
-          <Hidden mdDown implementation="css">
-            <Drawer
-              classes={{ paper: classes.drawerPaper }}
-              variant="permanent"
-              open
-            >
-              <div className={classes.toolbar}>
+    return (
+      <>
+        <Grid item xs={3} className={classes.root}>
+          <nav className={classes.drawer} aria-label="mailbox folders">
+            {/* Labtop / Desktop */}
+            <Hidden smDown implementation="css">
+              <Drawer
+                classes={{ paper: classes.drawerPaper }}
+                variant="permanent"
+                open
+              >
                 <TreeView
                   expanded={expanded}
-                  // expanded={dataStore.expanded}
-                  onNodeSelect={(event, nodeId) => manageExpandedData(nodeId)}
+                  onNodeSelect={(event, nodeId) => manageExpandedNode(nodeId)}
                 >
                   {renderDirEntries(dataStore.state.dirEntries, onClick)}
                 </TreeView>
-              </div>
-            </Drawer>
-          </Hidden>
-        </nav>
-      </div>
-    </>
-  );
-});
+              </Drawer>
+            </Hidden>
+
+            {/* Mobile */}
+            <Hidden mdUp implementation="css">
+              <Drawer
+                classes={{ paper: classes.mobileDrawerPaper }}
+                variant="temporary"
+                open={mobileOpen}
+                onClose={() => setMobileOpen(!mobileOpen)}
+                ModalProps={{ keepMounted: true }}
+              >
+                <TreeView />
+                <TreeView
+                  expanded={expanded}
+                  onNodeSelect={(event, nodeId) => manageExpandedNode(nodeId)}
+                >
+                  {renderDirEntries(dataStore.state.dirEntries, onClick)}
+                </TreeView>
+              </Drawer>
+            </Hidden>
+          </nav>
+        </Grid>
+      </>
+    );
+  },
+);
 
 const renderDirEntries = (dirEntries, onClick) => {
-  // const sortedDirEntries = sortDirEntries(dirEntries);
+  const copiedDirEntries = dirEntries.slice();
+  const sortedDirEntries = sortDirEntries(copiedDirEntries);
 
-  return dirEntries.map((dirEntry) => {
+  return sortedDirEntries.map((dirEntry) => {
     const childDirEntry = dirEntry.dirEntries ? dirEntry.dirEntries : null;
     const listName = extractNameFromPath(dirEntry.path, '/');
     const extentions = extractNameFromPath(dirEntry.path, '.');
@@ -101,90 +126,66 @@ const renderDirEntries = (dirEntries, onClick) => {
   });
 };
 
-// const compareByLocale = (a, b) => {
-//   const _a = a.path;
-//   const _b = b.path;
+const compareByLocale = (a, b) => {
+  const _a = a.path;
+  const _b = b.path;
 
-//   return _a.localeCompare(_b, undefined, {
-//     numeric: true,
-//     sensitivity: 'base',
-//   });
-// };
+  return _a.localeCompare(_b, undefined, {
+    numeric: true,
+    sensitivity: 'base',
+  });
+};
 
-// const compareByIsDir = (a, b) => b.isDir - a.isDir;
+const compareByIsDir = (a, b) => b.isDir - a.isDir;
 
-// const sortDirEntries = (dirEntries) => {
-//   dirEntries.sort((a, b) => {
-//     const compareIsDir = compareByIsDir(a, b);
-//     const compareLocale = compareByLocale(a, b);
+const sortDirEntries = (dirEntries) => {
+  dirEntries.sort((a, b) => {
+    const compareIsDir = compareByIsDir(a, b);
+    const compareLocale = compareByLocale(a, b);
 
-//     return compareIsDir || compareLocale;
-//   });
+    return compareIsDir || compareLocale;
+  });
 
-//   return dirEntries;
-// };
+  return dirEntries;
+};
 
 const extractNameFromPath = (path, separator) => {
   const splitted = path.split(separator);
   return splitted[splitted.length - 1];
 };
 
-// const fetchDirEntries = async (dirEntry) => {
-//   try {
-//     const res = await API.get(`/browse${dirEntry ? dirEntry.path : ''}`);
-//     return res.data.map((val) => ({
-//       path: val.path,
-//       size: val.size,
-//       isDir: val.isDir,
-//       parent: dirEntry,
-//     }));
-//   } catch (e) {
-//     throw e;
-//   }
-// };
-
 const useStyles = makeStyles((theme) => ({
   root: {
-    display: 'flex',
+    [theme.breakpoints.down('sm')]: {
+      display: 'none',
+    },
   },
   drawer: {
-    [theme.breakpoints.up('sm')]: {
+    [theme.breakpoints.up('md')]: {
       width: '100%',
       flexShrink: 0,
     },
   },
   menuButton: {
     marginRight: theme.spacing(2),
-    [theme.breakpoints.up('sm')]: {
+    [theme.breakpoints.up('md')]: {
       display: 'none',
     },
   },
-  // necessary for content to be below app bar
-  toolbar: theme.mixins.toolbar,
-  toolbar: {
-    paddingLeft: '40px',
-  },
   drawerPaper: {
-    position: 'relative',
     width: '100%',
-    paddingTop: '18px',
-    backgroundColor: 'rgb(255, 255, 255)',
+    position: 'relative',
+    paddingTop: '25px',
+    paddingLeft: '25px',
     height: 'calc(100vh - 60px)',
     fontSize: '1rem',
-    color: 'black',
   },
-  content: {
-    flexGrow: 1,
-    padding: theme.spacing(3),
-  },
-  listItem: {
-    paddingTop: 0,
-    paddingBottom: 0,
-    margin: '-8px',
-  },
-  icon: {
-    color: 'white',
-    minWidth: '28px',
+  mobileDrawerPaper: {
+    width: '50%',
+    marginTop: '60px',
+    padding: '18px 18px',
+    height: 'calc(100vh - 60px)',
+    fontSize: '1rem',
   },
 }));
 
@@ -205,77 +206,3 @@ export default SideBar;
     return res;
   };
 */
-
-/* Mobile
-<Hidden smUp implementation="css">
-  <Drawer
-    anchor={theme.direction === 'rtl' ? 'right' : 'left'}
-    // open={mobileOpen || renderTextFile} Warning!
-    onClick={() => setMobileOpen(!mobileOpen)}
-    classes={{
-      paper: classes.drawerPaper,
-    }}
-    ModalProps={{
-      keepMounted: true, // Better open performance on mobile.
-    }}
-  >
-    <div>
-      <div className={classes.toolbar}>{renderSideBar(state.dirEntries)}</div>
-    </div>
-  </Drawer>
-</Hidden> */
-
-/*
-    state ==
-      {
-        dirEntries: [
-          {
-            path: String,
-            size: Number,
-            isDir: Boolean,
-            dirEntries: [
-              ...
-            ],
-          },
-        ],
-      };
-  */
-
-// const [state, setState] = useState({ dirEntries: [] });
-// const [expanded, setExpanded] = useState(['root']);
-// const [activedDirEnrty, setActivedDirEnrty] = useState({});
-
-// useEffect(() => {
-//   const initData = async () => {
-//     const dirEntries = await fetchDirEntries();
-//     setState({
-//       ...state,
-//       dirEntries,
-//     });
-//   };
-
-//   initData();
-// }, []);
-
-// When click directory
-// dirEntry.dirEntries = await dataStore.fetchDirEntries(dirEntry);
-// dirEntry.isFetched = true;
-// dirEntry.open = !dirEntry.open;
-
-// setState({ ...state });
-// dataStore.setState({ ...dataStore.state });
-
-// switch (mode) {
-//   case 'Default':
-//     if (dirEntry.isActive) {
-//       dataStore.activedDirEnrty.isActive = false;
-//       dataStore.setActivedDirEnrty(dirEntry);
-//       // setActivedDirEnrty(dirEntry);
-//     }
-
-//     onActiveImageChanged(dirEntry);
-//     break;
-
-//   default:
-//     break;
-// }

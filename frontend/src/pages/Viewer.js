@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 
+import zoomStore from '../stores/zoomStore';
+
 import { makeStyles } from '@material-ui/core';
 import Grid from '@material-ui/core/Grid';
-import Button from '@material-ui/core/Button';
 
 import SideBar from '../components/SideBar';
 
@@ -12,7 +13,6 @@ import { MapInteractionCSS } from 'react-map-interaction';
 import API from '../api/index';
 
 const Viewer = observer(({ mobileOpen, setMobileOpen }) => {
-  const [mode, setMode] = useState('Default');
   const [activeFiles, setActiveFiles] = useState([]);
   const [renderTextFile, setRenderTextFile] = useState('');
   const [objectURL, setObjectURL] = useState(null);
@@ -20,12 +20,6 @@ const Viewer = observer(({ mobileOpen, setMobileOpen }) => {
     activeFiles.length ? activeFiles.length - 1 : 0,
   );
   const [anchorIdx, setAnchorIdx] = useState(0);
-  const [state, setState] = useState({
-    scale: 1,
-    translation: { x: 0, y: 0 },
-    container: { width: 0, height: 0 },
-  });
-
   const classes = useStyles();
 
   const increaseCurrentId = useCallback(() => {
@@ -39,10 +33,6 @@ const Viewer = observer(({ mobileOpen, setMobileOpen }) => {
       setCurrentIdx(Math.max(0, currentIdx - 1));
     }
   }, [currentIdx, activeFiles]);
-
-  const initTranslation = useCallback(() =>
-    setState({ ...state, translation: { x: 0, y: 0 } }),
-  );
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -61,7 +51,7 @@ const Viewer = observer(({ mobileOpen, setMobileOpen }) => {
 
         case ' ':
           e.preventDefault();
-          initTranslation();
+          // initTranslation();
           setAnchorIdx(currentIdx);
           setCurrentIdx(0);
           break;
@@ -84,14 +74,41 @@ const Viewer = observer(({ mobileOpen, setMobileOpen }) => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [increaseCurrentId, decreaseCurrentId]);
+  });
+
+  const onActiveImageChanged = useCallback(
+    /* 
+      dirEntry = [
+        {
+          path: str,
+          size: int,
+          isDir: boolean,
+          isActive : true
+        }
+    */
+    (dirEntry) => {
+      if (dirEntry.isActive === true) {
+        setActiveFiles([...activeFiles, dirEntry]);
+      } else {
+        const images = activeFiles
+          .concat(dirEntry)
+          .filter((image) => image.isActive === true);
+        setActiveFiles(images);
+      }
+
+      setActiveFiles([dirEntry]);
+    },
+    [activeFiles, setActiveFiles],
+  );
 
   useEffect(() => {
     const loadImage = () => {
       URL.revokeObjectURL(objectURL);
 
       if (activeFiles.length > 0) {
-        API.get(`/browse${activeFiles[0].path}`, { responseType: 'blob' })
+        API.get(`/browse${activeFiles[0].path}`, {
+          responseType: 'blob',
+        })
           .then((res) => {
             if (res.data.type === 'text/plain') {
               res.data.text().then((text) => {
@@ -112,79 +129,32 @@ const Viewer = observer(({ mobileOpen, setMobileOpen }) => {
     loadImage();
   }, [activeFiles, currentIdx]);
 
-  const onActiveImageChanged = useCallback(
-    (dirEntry) => {
-      /* 
-      dirEntry = [
-        {
-          path: str,
-          size: int,
-          isDir: boolean,
-          isActive : true
-        }
-    */
-      switch (mode) {
-        case 'Tools':
-          if (dirEntry.isActive === true) {
-            setActiveFiles([...activeFiles, dirEntry]);
-          } else {
-            const images = activeFiles
-              .concat(dirEntry)
-              .filter((image) => image.isActive === true);
-            setActiveFiles(images);
-          }
-          break;
-
-        default:
-          setActiveFiles([dirEntry]);
-      }
-    },
-    [activeFiles, setActiveFiles],
-  );
-
-  const onChangeZoom = useCallback(
-    ({ scale, translation }) => {
-      const newState = {
-        ...state,
-        scale,
-        translation,
-      };
-      setState(newState);
-    },
-    [state, setState],
-  );
+  const onChangeZoom = useCallback(({ scale, translation }) => {
+    zoomStore.setZoomState({ scale, translation });
+  }, []);
 
   return (
     <Grid container xs={12} className={classes.container}>
-      {/* Side Bar */}
-      <Grid item className={classes.sideBar} xs={3}>
-        <Button onClick={initTranslation} style={{ marginLeft: '20rem' }}>
-          초기화
-        </Button>
-        <SideBar
-          onActiveImageChanged={onActiveImageChanged}
-          mode={mode}
-          mobileOpen={mobileOpen}
-          setMobileOpen={setMobileOpen}
-          activeFiles={activeFiles}
-          renderTextFile={renderTextFile}
-        />
-      </Grid>
+      <SideBar
+        onActiveImageChanged={onActiveImageChanged}
+        mobileOpen={mobileOpen}
+        setMobileOpen={setMobileOpen}
+      />
 
-      {/* Viewer */}
-      <Grid container item xs={9} className={classes.container__dataViewer}>
+      <Grid container item xs className={classes.container__dataViewer}>
         <div className={classes.dataViewer}>
-          {/* TEXT */}
           {renderTextFile && (
             <Grid item>
               <pre>{renderTextFile}</pre>
             </Grid>
           )}
 
-          {/* IMAGE */}
           {objectURL && (
             <Grid item className={classes.container__dataViewer__img}>
-              <MapInteractionCSS value={state} onChange={onChangeZoom}>
+              <MapInteractionCSS
+                value={zoomStore.zoomState}
+                onChange={onChangeZoom}
+              >
                 <img alt="이미지" src={objectURL} />
               </MapInteractionCSS>
             </Grid>
@@ -202,6 +172,7 @@ const useStyles = makeStyles((theme) => ({
   },
   container__dataViewer: {
     height: 'calc(100vh - 60px)',
+    width: '100%',
     overflow: 'hidden',
     touchAction: 'none',
     fontSize: '3rem',
@@ -215,10 +186,6 @@ const useStyles = makeStyles((theme) => ({
     MozUserSelect: 'none',
     msUserSelect: 'none',
     WebkitTouchCallout: 'none',
-    [theme.breakpoints.down('sm')]: {
-      maxWidth: '100%',
-      flexBasis: '100%',
-    },
   },
   dataViewer: {
     position: 'relative',
@@ -227,15 +194,12 @@ const useStyles = makeStyles((theme) => ({
     fontSize: '3rem',
     fontStyle: 'italic',
   },
-  container__dataViewer__img: {
-    cursor: 'zoom-in',
-    heigth: 'calc(100vh - 60px)',
-  },
-  sideBar: {
-    [theme.breakpoints.down('sm')]: {
-      display: 'none',
-    },
-  },
 }));
 
 export default Viewer;
+
+{
+  /* <Button onClick={initTranslation} style={{ marginLeft: '20rem' }}>
+          초기화
+        </Button> */
+}

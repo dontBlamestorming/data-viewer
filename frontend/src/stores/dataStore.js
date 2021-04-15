@@ -1,8 +1,9 @@
-import { makeAutoObservable } from 'mobx';
+import { makeAutoObservable, toJS, autorun } from 'mobx';
 import API from '../api/index';
 
 class DataStore {
   state = { dirEntries: [] };
+  activeFile = [];
   expanded = ['root'];
 
   constructor() {
@@ -29,27 +30,36 @@ class DataStore {
     }
   }
 
-  setExpanded(expandedId) {
-    this.expanded = expandedId;
-  }
-
   setState(state) {
     this.state = state;
   }
 
-  setActivedDirEnrty(dirEntry) {
-    this.activedDirEntry = dirEntry;
+  setActiveFiles(activeFile) {
+    this.activeFile = activeFile;
+    console.log(this);
+    console.log(toJS(this.activeFile));
   }
 
-  async onClickDirectory(dirEntry) {
-    dirEntry.dirEntries = await this.fetchDirEntries(dirEntry);
-    dirEntry.isFetched = true;
-    dirEntry.open = !dirEntry.open;
-
-    this.setState({ ...this.state });
+  onActiveImageChanged(dirEntry) {
+    if (dirEntry.isActive === true) {
+      this.setActiveFiles([dirEntry]);
+    } else {
+      const images = this.activeFile
+        .concat(dirEntry)
+        .filter((image) => image.isActive === true);
+      this.setActiveFiles(images);
+    }
   }
 }
 
 const dataStore = new DataStore();
+
+// autorun(() => {
+//   if (dataStore.isThereSomething) {
+//     console.log('Hello! I am Auto Run!!!');
+//   } else {
+//     console.log('?????????/');
+//   }
+// });
 
 export default dataStore;
