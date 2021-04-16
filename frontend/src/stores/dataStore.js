@@ -1,4 +1,4 @@
-import { makeAutoObservable, toJS, autorun } from 'mobx';
+import { makeAutoObservable } from 'mobx';
 import API from '../api/index';
 
 class DataStore {
@@ -41,12 +41,10 @@ class DataStore {
 
   setObjectImageURL(objectURL) {
     this.objectImageURL = objectURL;
-    console.log('setObjectImageURL', toJS(this.objectImageURL));
   }
 
   setActiveTextFile(text) {
     this.activeTextFile = text;
-    console.log('activeTextFile', this.activeFile);
   }
 
   onActiveImageChanged(dirEntry) {
@@ -67,29 +65,6 @@ class DataStore {
         .filter((image) => image.isActive === true);
       this.setActiveFile(images);
     }
-  }
-
-  loadDataSources() {
-    URL.revokeObjectURL(this.objectImageURL);
-
-    API.get(`/browse${this.activeFile[0].path}`, {
-      responseType: 'blob',
-    })
-      .then((res) => {
-        if (res.data.type === 'text/plain') {
-          res.data.text((text) => {
-            this.setActiveTextFile(text);
-            this.setObjectImageURL(null);
-          });
-        } else {
-          const objectURL = URL.createObjectURL(res.data);
-          this.setObjectImageURL(objectURL);
-          this.setActiveTextFile(null);
-        }
-      })
-      .catch((e) => {
-        throw e;
-      });
   }
 }
 

@@ -19,7 +19,6 @@ const Viewer = observer(() => {
   const classes = useStyles();
 
   useEffect(() => {
-    console.log('useEffect');
     const loadImage = () => {
       URL.revokeObjectURL(objectURL);
 
