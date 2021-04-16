@@ -1,11 +1,9 @@
-import { makeAutoObservable } from 'mobx';
+import { makeAutoObservable, runInAction, toJS } from 'mobx';
 import API from '../api/index';
 
 class DataStore {
-  state = { dirEntries: [] };
+  dirEntries = [];
   activeFile = [];
-  activeTextFile = '';
-  objectImageURL = null;
 
   constructor() {
     makeAutoObservable(this);
@@ -13,7 +11,8 @@ class DataStore {
 
   async initializeData() {
     const dirEntries = await this.fetchDirEntries();
-    this.state = { ...this.state, dirEntries };
+
+    runInAction(() => (this.dirEntries = dirEntries));
   }
 
   async fetchDirEntries(dirEntry) {
@@ -31,16 +30,16 @@ class DataStore {
     }
   }
 
-  setState(state) {
-    this.state = state;
+  setDirEntries(dirEntry) {
+    this.dirEntries = dirEntry;
   }
+
+  // setState(state) {
+  //   this.state = state;
+  // }
 
   setActiveFile(activeFile) {
     this.activeFile = activeFile;
-  }
-
-  setObjectImageURL(objectURL) {
-    this.objectImageURL = objectURL;
   }
 
   setActiveTextFile(text) {

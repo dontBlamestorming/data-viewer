@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 
+import { runInAction, toJS } from 'mobx';
 import { observer } from 'mobx-react-lite';
+
 import dataStore from '../stores/dataStore';
 import appStore from '../stores/appStore';
 
@@ -24,6 +26,8 @@ const SideBar = observer(() => {
   useEffect(() => dataStore.initializeData(), []);
 
   const onClick = async (dirEntry) => {
+    console.log('dirEntry', toJS(dirEntry));
+
     if (!dirEntry.isDir) {
       dirEntry.isActive = !dirEntry.isActive;
       dataStore.onActiveImageChanged(dirEntry);
@@ -32,9 +36,15 @@ const SideBar = observer(() => {
     }
 
     dirEntry.dirEntries = await dataStore.fetchDirEntries(dirEntry);
-    dirEntry.isFetched = true;
-    dirEntry.open = !dirEntry.open;
-    dataStore.setState({ ...dataStore.state });
+
+    runInAction(() => {
+      dirEntry.isFetched = true;
+      dirEntry.open = !dirEntry.open;
+    });
+
+    console.log(toJS(dirEntry.dirEntries));
+    // dataStore.setDirEntries({ ...dataStore.dirEntries });
+    // dataStore.setDirEntries();
   };
 
   const manageExpandedNode = (nodeId) => {
@@ -81,7 +91,7 @@ const renderTreeView = (expanded, manageExpandedNode, onClick) => (
     expanded={expanded}
     onNodeSelect={(event, nodeId) => manageExpandedNode(nodeId)}
   >
-    {renderDirEntries(dataStore.state.dirEntries, onClick)}
+    {renderDirEntries(dataStore.dirEntries, onClick)}
   </TreeView>
 );
 
