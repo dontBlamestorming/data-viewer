@@ -1,6 +1,7 @@
 import { makeAutoObservable } from 'mobx';
 
 class AppStore {
+  mobileOpen = false;
   isLoading = false;
 
   constructor() {
@@ -9,6 +10,10 @@ class AppStore {
 
   setLoading(bool) {
     this.isLoading = bool;
+  }
+
+  setMobileOpen() {
+    this.mobileOpen = !this.mobileOpen;
   }
 }
 

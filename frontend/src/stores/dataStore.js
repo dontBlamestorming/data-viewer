@@ -4,7 +4,8 @@ import API from '../api/index';
 class DataStore {
   state = { dirEntries: [] };
   activeFile = [];
-  expanded = ['root'];
+  activeTextFile = '';
+  objectImageURL = null;
 
   constructor() {
     makeAutoObservable(this);
@@ -34,32 +35,64 @@ class DataStore {
     this.state = state;
   }
 
-  setActiveFiles(activeFile) {
+  setActiveFile(activeFile) {
     this.activeFile = activeFile;
-    console.log(this);
-    console.log(toJS(this.activeFile));
+  }
+
+  setObjectImageURL(objectURL) {
+    this.objectImageURL = objectURL;
+    console.log('setObjectImageURL', toJS(this.objectImageURL));
+  }
+
+  setActiveTextFile(text) {
+    this.activeTextFile = text;
+    console.log('activeTextFile', this.activeFile);
   }
 
   onActiveImageChanged(dirEntry) {
+    /* 
+      dirEntry = [
+        {
+          path: str,
+          size: int,
+          isDir: boolean,
+          isActive : true
+        }
+    */
     if (dirEntry.isActive === true) {
-      this.setActiveFiles([dirEntry]);
+      this.setActiveFile([dirEntry]);
     } else {
       const images = this.activeFile
         .concat(dirEntry)
         .filter((image) => image.isActive === true);
-      this.setActiveFiles(images);
+      this.setActiveFile(images);
     }
+  }
+
+  loadDataSources() {
+    URL.revokeObjectURL(this.objectImageURL);
+
+    API.get(`/browse${this.activeFile[0].path}`, {
+      responseType: 'blob',
+    })
+      .then((res) => {
+        if (res.data.type === 'text/plain') {
+          res.data.text((text) => {
+            this.setActiveTextFile(text);
+            this.setObjectImageURL(null);
+          });
+        } else {
+          const objectURL = URL.createObjectURL(res.data);
+          this.setObjectImageURL(objectURL);
+          this.setActiveTextFile(null);
+        }
+      })
+      .catch((e) => {
+        throw e;
+      });
   }
 }
 
 const dataStore = new DataStore();
-
-// autorun(() => {
-//   if (dataStore.isThereSomething) {
-//     console.log('Hello! I am Auto Run!!!');
-//   } else {
-//     console.log('?????????/');
-//   }
-// });
 
 export default dataStore;

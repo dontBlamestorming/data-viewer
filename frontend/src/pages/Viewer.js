@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 
+import dataStore from '../stores/dataStore';
 import zoomStore from '../stores/zoomStore';
 
 import { makeStyles } from '@material-ui/core';
@@ -12,106 +13,24 @@ import { MapInteractionCSS } from 'react-map-interaction';
 
 import API from '../api/index';
 
-const Viewer = observer(({ mobileOpen, setMobileOpen }) => {
-  const [activeFiles, setActiveFiles] = useState([]);
+const Viewer = observer(() => {
   const [renderTextFile, setRenderTextFile] = useState('');
   const [objectURL, setObjectURL] = useState(null);
-  const [currentIdx, setCurrentIdx] = useState(
-    activeFiles.length ? activeFiles.length - 1 : 0,
-  );
-  const [anchorIdx, setAnchorIdx] = useState(0);
   const classes = useStyles();
 
-  const increaseCurrentId = useCallback(() => {
-    if (activeFiles.length > 0) {
-      setCurrentIdx(Math.min(currentIdx + 1, activeFiles.length - 1));
-    }
-  }, [currentIdx, activeFiles]);
-
-  const decreaseCurrentId = useCallback(() => {
-    if (activeFiles.length > 0) {
-      setCurrentIdx(Math.max(0, currentIdx - 1));
-    }
-  }, [currentIdx, activeFiles]);
-
   useEffect(() => {
-    const handleKeyDown = (e) => {
-      switch (e.key) {
-        case 'ArrowRight':
-        case 'ArrowDown':
-          e.preventDefault();
-          increaseCurrentId();
-          break;
-
-        case 'ArrowLeft':
-        case 'ArrowUp':
-          e.preventDefault();
-          decreaseCurrentId();
-          break;
-
-        case ' ':
-          e.preventDefault();
-          // initTranslation();
-          setAnchorIdx(currentIdx);
-          setCurrentIdx(0);
-          break;
-
-        default:
-          return;
-      }
-    };
-
-    const handleKeyUp = (e) => {
-      if (e.key === ' ') {
-        e.preventDefault();
-        setCurrentIdx(anchorIdx);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  });
-
-  const onActiveImageChanged = useCallback(
-    /* 
-      dirEntry = [
-        {
-          path: str,
-          size: int,
-          isDir: boolean,
-          isActive : true
-        }
-    */
-    (dirEntry) => {
-      if (dirEntry.isActive === true) {
-        setActiveFiles([...activeFiles, dirEntry]);
-      } else {
-        const images = activeFiles
-          .concat(dirEntry)
-          .filter((image) => image.isActive === true);
-        setActiveFiles(images);
-      }
-
-      setActiveFiles([dirEntry]);
-    },
-    [activeFiles, setActiveFiles],
-  );
-
-  useEffect(() => {
+    console.log('useEffect');
     const loadImage = () => {
       URL.revokeObjectURL(objectURL);
 
-      if (activeFiles.length > 0) {
-        API.get(`/browse${activeFiles[0].path}`, {
+      if (dataStore.activeFile.length > 0) {
+        API.get(`/browse${dataStore.activeFile[0].path}`, {
           responseType: 'blob',
         })
           .then((res) => {
             if (res.data.type === 'text/plain') {
               res.data.text().then((text) => {
+                console.log(text);
                 setRenderTextFile(text);
                 setObjectURL(null);
               });
@@ -127,7 +46,7 @@ const Viewer = observer(({ mobileOpen, setMobileOpen }) => {
       }
     };
     loadImage();
-  }, [activeFiles, currentIdx]);
+  }, [dataStore.activeFile]);
 
   const onChangeZoom = useCallback(({ scale, translation }) => {
     zoomStore.setZoomState({ scale, translation });
@@ -135,20 +54,10 @@ const Viewer = observer(({ mobileOpen, setMobileOpen }) => {
 
   return (
     <Grid container xs={12} className={classes.container}>
-      <SideBar
-        onActiveImageChanged={onActiveImageChanged}
-        mobileOpen={mobileOpen}
-        setMobileOpen={setMobileOpen}
-      />
+      <SideBar />
 
       <Grid container item xs className={classes.container__dataViewer}>
         <div className={classes.dataViewer}>
-          {renderTextFile && (
-            <Grid item>
-              <pre>{renderTextFile}</pre>
-            </Grid>
-          )}
-
           {objectURL && (
             <Grid item className={classes.container__dataViewer__img}>
               <MapInteractionCSS
@@ -159,13 +68,19 @@ const Viewer = observer(({ mobileOpen, setMobileOpen }) => {
               </MapInteractionCSS>
             </Grid>
           )}
+
+          {renderTextFile && (
+            <Grid item>
+              <pre>{renderTextFile}</pre>
+            </Grid>
+          )}
         </div>
       </Grid>
     </Grid>
   );
 });
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(() => ({
   container: {
     position: 'relative',
     width: '100%',
@@ -198,8 +113,60 @@ const useStyles = makeStyles((theme) => ({
 
 export default Viewer;
 
-{
-  /* <Button onClick={initTranslation} style={{ marginLeft: '20rem' }}>
-          초기화
-        </Button> */
-}
+/* 
+  const [currentIdx, setCurrentIdx] = useState(
+    activeFiles.length ? activeFiles.length - 1 : 0,
+  );
+  const [anchorIdx, setAnchorIdx] = useState(0);
+
+  const increaseCurrentId = useCallback(() => {
+    if (activeFiles.length > 0) {
+      setCurrentIdx(Math.min(currentIdx + 1, activeFiles.length - 1));
+    }
+  }, [currentIdx, activeFiles]);
+
+  const decreaseCurrentId = useCallback(() => {
+    if (activeFiles.length > 0) {
+      setCurrentIdx(Math.max(0, currentIdx - 1));
+    }
+  }, [currentIdx, activeFiles]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      switch (e.key) {
+        case 'ArrowRight':
+        case 'ArrowDown':
+          e.preventDefault();
+          break;
+
+        case 'ArrowLeft':
+        case 'ArrowUp':
+          e.preventDefault();
+          break;
+
+        case ' ':
+          e.preventDefault();
+          setAnchorIdx(currentIdx);
+          setCurrentIdx(0);
+          break;
+
+        default:
+          return;
+      }
+    };
+
+    const handleKeyUp = (e) => {
+      if (e.key === ' ') {
+        e.preventDefault();
+        setCurrentIdx(anchorIdx);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  });
+*/

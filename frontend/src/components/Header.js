@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 import { observer } from 'mobx-react-lite';
+import appStore from '../stores/appStore';
 import userStore from '../stores/userStore';
 import zoomStore from '../stores/zoomStore';
 
@@ -13,37 +14,7 @@ import MenuIcon from '@material-ui/icons/Menu';
 
 import logoImage from '../assets/logo.png';
 
-const useStyles = makeStyles((theme) => ({
-  header: {
-    height: '60px',
-    display: 'flex',
-    position: 'relative',
-    backgroundColor: 'rgb(248, 249, 250)',
-    boxShadow: 'rgb(0 0 0 / 16%) 0px 3px 6px',
-    zIndex: '999',
-  },
-  leftNav: {
-    marginLeft: '20px',
-  },
-  rightNav: {
-    marginRight: '10px',
-  },
-  contents: {
-    marginBottom: '10px',
-  },
-  logoImage: {
-    maxHeight: '25px',
-  },
-  // Mobile
-  menuButton: {
-    marginRight: theme.spacing(2),
-    [theme.breakpoints.up('md')]: {
-      display: 'none',
-    },
-  },
-}));
-
-const Header = observer(({ mobileOpen, setMobileOpen }) => {
+const Header = observer(() => {
   const classes = useStyles();
 
   return (
@@ -55,7 +26,7 @@ const Header = observer(({ mobileOpen, setMobileOpen }) => {
             aria-label="open drawer"
             edge="start"
             className={classes.menuButton}
-            onClick={() => setMobileOpen(!mobileOpen)}
+            onClick={() => appStore.setMobileOpen()}
           >
             <MenuIcon />
           </IconButton>
@@ -96,5 +67,35 @@ const Header = observer(({ mobileOpen, setMobileOpen }) => {
     </Grid>
   );
 });
+
+const useStyles = makeStyles((theme) => ({
+  header: {
+    height: '60px',
+    display: 'flex',
+    position: 'relative',
+    backgroundColor: 'rgb(248, 249, 250)',
+    boxShadow: 'rgb(0 0 0 / 16%) 0px 3px 6px',
+    zIndex: '999',
+  },
+  leftNav: {
+    marginLeft: '20px',
+  },
+  rightNav: {
+    marginRight: '10px',
+  },
+  contents: {
+    marginBottom: '10px',
+  },
+  logoImage: {
+    maxHeight: '25px',
+  },
+  // Mobile
+  menuButton: {
+    marginRight: theme.spacing(2),
+    [theme.breakpoints.up('md')]: {
+      display: 'none',
+    },
+  },
+}));
 
 export default Header;

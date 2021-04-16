@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 import { observer } from 'mobx-react-lite';
 import dataStore from '../stores/dataStore';
+import appStore from '../stores/appStore';
 
 import TreeView from '@material-ui/lab/TreeView';
 import TreeItem from '@material-ui/lab/TreeItem';
@@ -16,77 +17,72 @@ import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import ImageIcon from '@material-ui/icons/Image';
 import TextFieldsIcon from '@material-ui/icons/TextFields';
 
-const SideBar = observer(
-  ({ onActiveImageChanged, mobileOpen, setMobileOpen }) => {
-    const [expanded, setExpanded] = useState(['root']);
-    const classes = useStyles();
+const SideBar = observer(() => {
+  const [expanded, setExpanded] = useState(['root']);
+  const classes = useStyles();
 
-    useEffect(() => dataStore.initializeData(), []);
+  useEffect(() => dataStore.initializeData(), []);
 
-    const onClick = async (dirEntry) => {
-      if (!dirEntry.isDir) {
-        dirEntry.isActive = !dirEntry.isActive;
-        onActiveImageChanged(dirEntry);
-        return;
-      }
+  const onClick = async (dirEntry) => {
+    if (!dirEntry.isDir) {
+      dirEntry.isActive = !dirEntry.isActive;
+      dataStore.onActiveImageChanged(dirEntry);
 
-      dirEntry.dirEntries = await dataStore.fetchDirEntries(dirEntry);
-      dirEntry.isFetched = true;
-      dirEntry.open = !dirEntry.open;
-      dataStore.setState({ ...dataStore.state });
-    };
+      return;
+    }
 
-    const manageExpandedNode = (nodeId) => {
-      const newExpandedId = expanded.includes(nodeId)
-        ? expanded.filter((id) => id !== nodeId)
-        : [...expanded, nodeId];
+    dirEntry.dirEntries = await dataStore.fetchDirEntries(dirEntry);
+    dirEntry.isFetched = true;
+    dirEntry.open = !dirEntry.open;
+    dataStore.setState({ ...dataStore.state });
+  };
 
-      setExpanded(newExpandedId);
-    };
+  const manageExpandedNode = (nodeId) => {
+    const newExpandedId = expanded.includes(nodeId)
+      ? expanded.filter((id) => id !== nodeId)
+      : [...expanded, nodeId];
 
-    return (
-      <>
-        <Grid item xs={3} className={classes.root}>
-          <nav className={classes.drawer} aria-label="mailbox folders">
-            {/* Labtop / Desktop */}
-            <Hidden smDown implementation="css">
-              <Drawer
-                classes={{ paper: classes.drawerPaper }}
-                variant="permanent"
-                open
-              >
-                <TreeView
-                  expanded={expanded}
-                  onNodeSelect={(event, nodeId) => manageExpandedNode(nodeId)}
-                >
-                  {renderDirEntries(dataStore.state.dirEntries, onClick)}
-                </TreeView>
-              </Drawer>
-            </Hidden>
+    setExpanded(newExpandedId);
+  };
 
-            {/* Mobile */}
-            <Hidden mdUp implementation="css">
-              <Drawer
-                classes={{ paper: classes.mobileDrawerPaper }}
-                variant="temporary"
-                open={mobileOpen}
-                onClose={() => setMobileOpen(!mobileOpen)}
-                ModalProps={{ keepMounted: true }}
-              >
-                <TreeView />
-                <TreeView
-                  expanded={expanded}
-                  onNodeSelect={(event, nodeId) => manageExpandedNode(nodeId)}
-                >
-                  {renderDirEntries(dataStore.state.dirEntries, onClick)}
-                </TreeView>
-              </Drawer>
-            </Hidden>
-          </nav>
-        </Grid>
-      </>
-    );
-  },
+  return (
+    <>
+      <Grid item xs={3} className={classes.root}>
+        <nav className={classes.drawer} aria-label="mailbox folders">
+          <Hidden smDown implementation="css">
+            <Drawer
+              classes={{ paper: classes.drawerPaper }}
+              variant="permanent"
+              open
+            >
+              {renderTreeView(expanded, manageExpandedNode, onClick)}
+            </Drawer>
+          </Hidden>
+
+          <Hidden mdUp implementation="css">
+            <Drawer
+              classes={{ paper: classes.mobileDrawerPaper }}
+              variant="temporary"
+              open={appStore.mobileOpen}
+              onClose={() => appStore.setMobileOpen()}
+              ModalProps={{ keepMounted: true }}
+            >
+              {renderTreeView(expanded, manageExpandedNode, onClick)}
+            </Drawer>
+          </Hidden>
+        </nav>
+      </Grid>
+    </>
+  );
+});
+
+const renderTreeView = (expanded, manageExpandedNode, onClick) => (
+  <TreeView
+    expanded={expanded}
+    onNodeSelect={(event, nodeId) => manageExpandedNode(nodeId)}
+  >
+    {renderDirEntries(dataStore.state.dirEntries, onClick)}
+  </TreeView>
 );
 
 const renderDirEntries = (dirEntries, onClick) => {

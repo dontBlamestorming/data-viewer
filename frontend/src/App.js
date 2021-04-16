@@ -14,33 +14,20 @@ import appStore from './stores/appStore';
 import userStore from './stores/userStore';
 
 const App = observer(() => {
-  const [mobileOpen, setMobileOpen] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    userStore.restore(() => {
-      setTimeout(() => setInitialized(true), 100);
-    });
+    userStore.restore(() => setTimeout(() => setInitialized(true), 100));
   }, []);
 
   return !initialized ? (
     <Loading />
   ) : (
     <div className="App">
-      <Header mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
+      <Header />
       <Switch>
         <Route exact path="/" render={(props) => <LoginForm {...props} />} />
-
-        <AuthRoute
-          path="/viewer"
-          render={(props) => (
-            <Viewer
-              mobileOpen={mobileOpen}
-              setMobileOpen={setMobileOpen}
-              {...props}
-            />
-          )}
-        />
+        <AuthRoute path="/viewer" render={(props) => <Viewer {...props} />} />
       </Switch>
       {appStore.isLoading && <Loading />}
     </div>
