@@ -23,22 +23,19 @@ const SideBar = observer(() => {
   const [expanded, setExpanded] = useState(['root']);
   const classes = useStyles();
 
-  useEffect(() => dataStore.initializeData(), []);
+  useEffect(() => dataStore.initData(), []);
 
   const onClick = async (dirEntry) => {
     console.log('dirEntry', toJS(dirEntry));
 
-    if (!dirEntry.isDir) {
-      dirEntry.isActive = !dirEntry.isActive;
+    if (dirEntry.isDir) {
+      await dataStore.fetchDirEntries(dirEntry);
+      dataStore.open(dirEntry);
+    } else {
       dataStore.onActiveImageChanged(dirEntry);
-
-      return;
     }
 
-    dirEntry.dirEntries = await dataStore.fetchDirEntries(dirEntry);
-
     runInAction(() => {
-      dirEntry.isFetched = true;
       dirEntry.open = !dirEntry.open;
     });
 
@@ -95,14 +92,22 @@ const renderTreeView = (expanded, manageExpandedNode, onClick) => (
   </TreeView>
 );
 
-const renderDirEntries = (dirEntries, onClick) => {
-  const copiedDirEntries = dirEntries.slice();
-  const sortedDirEntries = sortDirEntries(copiedDirEntries);
+const getTreeIcon = (dirEntry) => {
+  if (dirEntry.isDir) {
+    return expanded.includes(dirEntry.path) ? (
+      <ArrowDropDownIcon />
+    ) : (
+      <ArrowRightIcon />
+    );
+  }
 
-  return sortedDirEntries.map((dirEntry) => {
-    const childDirEntry = dirEntry.dirEntries ? dirEntry.dirEntries : null;
+  const extentions = extractNameFromPath(dirEntry.path, '.');
+  return extentions === 'png' ? <ImageIcon /> : <TextFieldsIcon />;
+};
+
+const renderDirEntries = (dirEntries, onClick) => {
+  return dirEntries.map((dirEntry) => {
     const listName = extractNameFromPath(dirEntry.path, '/');
-    const extentions = extractNameFromPath(dirEntry.path, '.');
 
     return (
       <TreeItem
@@ -110,49 +115,14 @@ const renderDirEntries = (dirEntries, onClick) => {
         nodeId={dirEntry.path}
         label={listName}
         onLabelClick={() => onClick(dirEntry)}
-        icon={
-          dirEntry.isDir ? (
-            dirEntry.open ? (
-              <ArrowDropDownIcon />
-            ) : (
-              <ArrowRightIcon />
-            )
-          ) : extentions === 'png' ? (
-            <ImageIcon />
-          ) : (
-            <TextFieldsIcon />
-          )
-        }
+        icon={getTreeIcon(dirEntry)}
       >
-        {Array.isArray(childDirEntry)
-          ? renderDirEntries(childDirEntry, onClick)
-          : null}
+        {dirEntry.isDir &&
+          dirEntry.dirEntries &&
+          renderDirEntries(dirEntry.dirEntries, onClick)}
       </TreeItem>
     );
   });
-};
-
-const compareByLocale = (a, b) => {
-  const _a = a.path;
-  const _b = b.path;
-
-  return _a.localeCompare(_b, undefined, {
-    numeric: true,
-    sensitivity: 'base',
-  });
-};
-
-const compareByIsDir = (a, b) => b.isDir - a.isDir;
-
-const sortDirEntries = (dirEntries) => {
-  dirEntries.sort((a, b) => {
-    const compareIsDir = compareByIsDir(a, b);
-    const compareLocale = compareByLocale(a, b);
-
-    return compareIsDir || compareLocale;
-  });
-
-  return dirEntries;
 };
 
 const extractNameFromPath = (path, separator) => {

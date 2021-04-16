@@ -1,6 +1,29 @@
 import { makeAutoObservable, runInAction, toJS } from 'mobx';
 import API from '../api/index';
 
+const compareByLocale = (a, b) => {
+  const _a = a.path;
+  const _b = b.path;
+
+  return _a.localeCompare(_b, undefined, {
+    numeric: true,
+    sensitivity: 'base',
+  });
+};
+
+const compareByIsDir = (a, b) => b.isDir - a.isDir;
+
+const sortedDirEntries = (dirEntries) => {
+  dirEntries.sort((a, b) => {
+    const compareIsDir = compareByIsDir(a, b);
+    const compareLocale = compareByLocale(a, b);
+
+    return compareIsDir || compareLocale;
+  });
+
+  return dirEntries;
+};
+
 class DataStore {
   dirEntries = [];
   activeFile = [];
@@ -9,22 +32,30 @@ class DataStore {
     makeAutoObservable(this);
   }
 
-  async initializeData() {
-    const dirEntries = await this.fetchDirEntries();
-
-    runInAction(() => (this.dirEntries = dirEntries));
+  async initData() {
+    this.dirEntries = [];
+    await this.fetchDirEntries();
   }
 
   async fetchDirEntries(dirEntry) {
     try {
       const res = await API.get(`/browse${dirEntry ? dirEntry.path : ''}`);
 
-      return res.data.map((item) => ({
-        path: item.path,
-        size: item.size,
-        isDir: item.isDir,
-        parent: dirEntry,
-      }));
+      const result = sortedDirEntries(
+        res.data.map((item) => ({
+          path: item.path,
+          size: item.size,
+          isDir: item.isDir,
+          parent: dirEntry,
+        })),
+      );
+
+      if (dirEntry) {
+        dirEntry.dirEntries = result;
+        dirEntry.isFetched = true;
+      } else {
+        this.dirEntries = result;
+      }
     } catch (e) {
       throw e;
     }
@@ -64,6 +95,7 @@ class DataStore {
         .filter((image) => image.isActive === true);
       this.setActiveFile(images);
     }
+    dirEntry.isActive = !dirEntry.isActive;
   }
 }
 
