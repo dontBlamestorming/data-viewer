@@ -26,7 +26,7 @@ const sortedDirEntries = (dirEntries) => {
 
 class DataStore {
   dirEntries = [];
-  activeFile = [];
+  activeFile = {};
 
   constructor() {
     makeAutoObservable(this);
@@ -59,18 +59,6 @@ class DataStore {
     }
   }
 
-  setDirEntries(dirEntry) {
-    this.dirEntries = dirEntry;
-  }
-
-  setActiveFile(activeFile) {
-    this.activeFile = activeFile;
-  }
-
-  setActiveTextFile(text) {
-    this.activeTextFile = text;
-  }
-
   onActiveImageChanged(dirEntry) {
     /* 
       dirEntry = [
@@ -78,19 +66,20 @@ class DataStore {
           path: str,
           size: int,
           isDir: boolean,
-          isActive : true
+          isActive : dirEntry
         }
     */
-    dirEntry.isActive = !dirEntry.isActive;
+    // dirEntry.isActive = !dirEntry.isActive;
+    this.activeFile = dirEntry;
 
-    if (dirEntry.isActive === true) {
-      this.setActiveFile([dirEntry]);
-    } else {
-      const images = this.activeFile
-        .concat(dirEntry)
-        .filter((image) => image.isActive === true);
-      this.setActiveFile(images);
-    }
+    // if (dirEntry.isActive === true) {
+    //   this.activeFile = dirEntry;
+    // } else {
+    //   this.activeFile = dirEntry;
+    //   // const images = this.activeFile
+    //   //   .concat(dirEntry)
+    //   //   .filter((image) => image.isActive === true);
+    // }
   }
 }
 

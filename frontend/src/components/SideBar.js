@@ -27,8 +27,10 @@ const SideBar = observer(() => {
 
   const onClick = async (dirEntry) => {
     if (dirEntry.isDir) {
+      // 폴더를 클릭했다면!
       await dataStore.fetchDirEntries(dirEntry);
     } else {
+      // 파일을 클릭했다면!!
       dataStore.onActiveImageChanged(dirEntry);
     }
 

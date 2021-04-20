@@ -23,8 +23,8 @@ const Viewer = observer(() => {
     const loadImage = () => {
       URL.revokeObjectURL(objectURL);
 
-      if (dataStore.activeFile.length > 0) {
-        API.get(`/browse${dataStore.activeFile[0].path}`, {
+      if (dataStore.activeFile) {
+        API.get(`/browse${dataStore.activeFile.path}`, {
           responseType: 'blob',
         })
           .then((res) => {
