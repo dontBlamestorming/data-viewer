@@ -1,4 +1,4 @@
-import { makeAutoObservable, runInAction, toJS } from 'mobx';
+import { makeAutoObservable, toJS } from 'mobx';
 import API from '../api/index';
 
 const compareByLocale = (a, b) => {
@@ -39,16 +39,14 @@ class DataStore {
 
   async fetchDirEntries(dirEntry) {
     try {
-      const res = await API.get(`/browse${dirEntry ? dirEntry.path : ''}`);
-
-      const result = sortedDirEntries(
-        res.data.map((item) => ({
-          path: item.path,
-          size: item.size,
-          isDir: item.isDir,
-          parent: dirEntry,
-        })),
-      );
+      const response = await API.get(`/browse${dirEntry ? dirEntry.path : ''}`);
+      const dirEntries = response.data.map((item) => ({
+        path: item.path,
+        size: item.size,
+        isDir: item.isDir,
+        parent: dirEntry,
+      }));
+      const result = sortedDirEntries(dirEntries);
 
       if (dirEntry) {
         dirEntry.dirEntries = result;
@@ -64,10 +62,6 @@ class DataStore {
   setDirEntries(dirEntry) {
     this.dirEntries = dirEntry;
   }
-
-  // setState(state) {
-  //   this.state = state;
-  // }
 
   setActiveFile(activeFile) {
     this.activeFile = activeFile;
@@ -87,6 +81,8 @@ class DataStore {
           isActive : true
         }
     */
+    dirEntry.isActive = !dirEntry.isActive;
+
     if (dirEntry.isActive === true) {
       this.setActiveFile([dirEntry]);
     } else {
@@ -95,7 +91,6 @@ class DataStore {
         .filter((image) => image.isActive === true);
       this.setActiveFile(images);
     }
-    dirEntry.isActive = !dirEntry.isActive;
   }
 }
 

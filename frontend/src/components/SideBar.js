@@ -26,25 +26,19 @@ const SideBar = observer(() => {
   useEffect(() => dataStore.initData(), []);
 
   const onClick = async (dirEntry) => {
-    console.log('dirEntry', toJS(dirEntry));
-
     if (dirEntry.isDir) {
       await dataStore.fetchDirEntries(dirEntry);
-      dataStore.open(dirEntry);
     } else {
       dataStore.onActiveImageChanged(dirEntry);
     }
 
-    runInAction(() => {
-      dirEntry.open = !dirEntry.open;
-    });
-
-    console.log(toJS(dirEntry.dirEntries));
-    // dataStore.setDirEntries({ ...dataStore.dirEntries });
-    // dataStore.setDirEntries();
+    runInAction(() => (dirEntry.open = !dirEntry.open));
   };
 
   const manageExpandedNode = (nodeId) => {
+    const extention = extractNameFromPath(nodeId, '.');
+    if (extention === 'png' || extention === 'txt') return;
+
     const newExpandedId = expanded.includes(nodeId)
       ? expanded.filter((id) => id !== nodeId)
       : [...expanded, nodeId];
@@ -62,7 +56,7 @@ const SideBar = observer(() => {
               variant="permanent"
               open
             >
-              {renderTreeView(expanded, manageExpandedNode, onClick)}
+              {renderTreeView(manageExpandedNode, onClick, expanded)}
             </Drawer>
           </Hidden>
 
@@ -74,7 +68,7 @@ const SideBar = observer(() => {
               onClose={() => appStore.setMobileOpen()}
               ModalProps={{ keepMounted: true }}
             >
-              {renderTreeView(expanded, manageExpandedNode, onClick)}
+              {renderTreeView(manageExpandedNode, onClick, expanded)}
             </Drawer>
           </Hidden>
         </nav>
@@ -83,16 +77,36 @@ const SideBar = observer(() => {
   );
 });
 
-const renderTreeView = (expanded, manageExpandedNode, onClick) => (
+const renderTreeView = (manageExpandedNode, onClick, expanded) => (
   <TreeView
     expanded={expanded}
     onNodeSelect={(event, nodeId) => manageExpandedNode(nodeId)}
   >
-    {renderDirEntries(dataStore.dirEntries, onClick)}
+    {renderDirEntries(dataStore.dirEntries, onClick, expanded)}
   </TreeView>
 );
 
-const getTreeIcon = (dirEntry) => {
+const renderDirEntries = (dirEntries, onClick, expanded) => {
+  return dirEntries.map((dirEntry) => {
+    const listName = extractNameFromPath(dirEntry.path, '/');
+
+    return (
+      <TreeItem
+        key={dirEntry.path}
+        nodeId={dirEntry.path}
+        label={listName}
+        onLabelClick={() => onClick(dirEntry)}
+        icon={getTreeIcon(dirEntry, expanded)}
+      >
+        {dirEntry.isDir &&
+          dirEntry.dirEntries &&
+          renderDirEntries(dirEntry.dirEntries, onClick, expanded)}
+      </TreeItem>
+    );
+  });
+};
+
+const getTreeIcon = (dirEntry, expanded) => {
   if (dirEntry.isDir) {
     return expanded.includes(dirEntry.path) ? (
       <ArrowDropDownIcon />
@@ -103,26 +117,6 @@ const getTreeIcon = (dirEntry) => {
 
   const extentions = extractNameFromPath(dirEntry.path, '.');
   return extentions === 'png' ? <ImageIcon /> : <TextFieldsIcon />;
-};
-
-const renderDirEntries = (dirEntries, onClick) => {
-  return dirEntries.map((dirEntry) => {
-    const listName = extractNameFromPath(dirEntry.path, '/');
-
-    return (
-      <TreeItem
-        key={dirEntry.path}
-        nodeId={dirEntry.path}
-        label={listName}
-        onLabelClick={() => onClick(dirEntry)}
-        icon={getTreeIcon(dirEntry)}
-      >
-        {dirEntry.isDir &&
-          dirEntry.dirEntries &&
-          renderDirEntries(dirEntry.dirEntries, onClick)}
-      </TreeItem>
-    );
-  });
 };
 
 const extractNameFromPath = (path, separator) => {

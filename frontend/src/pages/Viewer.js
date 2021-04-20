@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
+import { toJS } from 'mobx';
 
 import dataStore from '../stores/dataStore';
 import zoomStore from '../stores/zoomStore';
@@ -29,7 +30,6 @@ const Viewer = observer(() => {
           .then((res) => {
             if (res.data.type === 'text/plain') {
               res.data.text().then((text) => {
-                console.log(text);
                 setRenderTextFile(text);
                 setObjectURL(null);
               });

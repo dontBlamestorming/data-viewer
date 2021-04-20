@@ -52,13 +52,13 @@ const Header = observer(() => {
         alignItems="center"
         spacing={3}
       >
-        <Grid item>
+        <Grid item className={classes.initlocationBtn}>
           <Button onClick={() => zoomStore.resetZoomState()}>
             위치 초기화
           </Button>
         </Grid>
 
-        <Grid item>
+        <Grid item className={classes.userStatusBtn}>
           <Button onClick={userStore.logout}>
             {userStore.user ? '로그아웃' : 'Data Viewer'}
           </Button>
@@ -83,11 +83,21 @@ const useStyles = makeStyles((theme) => ({
   rightNav: {
     marginRight: '10px',
   },
-  contents: {
-    marginBottom: '10px',
+  initlocationBtn: {
+    [theme.breakpoints.down('sm')]: {
+      padding: '0 0 0 0 !important',
+    },
+  },
+  userStatusBtn: {
+    [theme.breakpoints.down('sm')]: {
+      padding: '0 0 0 0 !important',
+    },
   },
   logoImage: {
     maxHeight: '25px',
+    [theme.breakpoints.down('sm')]: {
+      maxHeight: '20px',
+    },
   },
   // Mobile
   menuButton: {
