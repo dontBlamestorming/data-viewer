@@ -1,8 +1,0 @@
-
-/* list 태그 초기화 */
-ul, ol, li {
-    list-style: none; 
-    margin:0;
-    padding:0;
-}
-
