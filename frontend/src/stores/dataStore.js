@@ -25,6 +25,15 @@ const sortedDirEntries = (dirEntries) => {
 };
 
 class DataStore {
+  /* 
+    dirEntry = [
+      {
+        path: str,
+        size: int,
+        isDir: boolean,
+        isActive : dirEntry
+      }
+  */
   dirEntries = [];
   activeFile = {};
 
@@ -60,29 +69,27 @@ class DataStore {
   }
 
   onActiveImageChanged(dirEntry) {
-    /* 
-      dirEntry = [
-        {
-          path: str,
-          size: int,
-          isDir: boolean,
-          isActive : dirEntry
-        }
-    */
-    // dirEntry.isActive = !dirEntry.isActive;
     this.activeFile = dirEntry;
-
-    // if (dirEntry.isActive === true) {
-    //   this.activeFile = dirEntry;
-    // } else {
-    //   this.activeFile = dirEntry;
-    //   // const images = this.activeFile
-    //   //   .concat(dirEntry)
-    //   //   .filter((image) => image.isActive === true);
-    // }
   }
 }
 
 const dataStore = new DataStore();
 
 export default dataStore;
+
+/*
+    dirEntry.isActive = !dirEntry.isActive;
+    if (dirEntry.isActive === true) {
+      this.dirEntries = [dirEntry];
+      this.activeFile = dirEntry;
+    } else {
+      const images = this.activeFile
+        .concat(dirEntry)
+        .filter((image) => image.isActive === true);
+    }
+
+    activefile을 배열로 여러개 모아놓는다고 가정하자 -> 2~3개 클릭해서 active상태로 만들어놓고 키로 컨트롤 할 수 있지
+    근데 그게 별로 필요가 없다고 하셨음
+
+    그렇다면? 최적화?문제는 지금은 끝났고 activefile을 전체로 관리할 필요가 있는가? 노노
+*/

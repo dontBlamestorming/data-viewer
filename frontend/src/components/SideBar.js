@@ -5,6 +5,7 @@ import { observer } from 'mobx-react-lite';
 
 import dataStore from '../stores/dataStore';
 import appStore from '../stores/appStore';
+import zoomStore from '../stores/zoomStore';
 
 import TreeView from '@material-ui/lab/TreeView';
 import TreeItem from '@material-ui/lab/TreeItem';
@@ -27,10 +28,8 @@ const SideBar = observer(() => {
 
   const onClick = async (dirEntry) => {
     if (dirEntry.isDir) {
-      // 폴더를 클릭했다면!
       await dataStore.fetchDirEntries(dirEntry);
     } else {
-      // 파일을 클릭했다면!!
       dataStore.onActiveImageChanged(dirEntry);
     }
 
@@ -84,11 +83,21 @@ const renderTreeView = (manageExpandedNode, onClick, expanded) => (
     expanded={expanded}
     onNodeSelect={(event, nodeId) => manageExpandedNode(nodeId)}
   >
-    {renderDirEntries(dataStore.dirEntries, onClick, expanded)}
+    {renderDirEntries(
+      dataStore.dirEntries,
+      onClick,
+      expanded,
+      manageExpandedNode,
+    )}
   </TreeView>
 );
 
-const renderDirEntries = (dirEntries, onClick, expanded) => {
+const renderDirEntries = (
+  dirEntries,
+  onClick,
+  expanded,
+  manageExpandedNode,
+) => {
   return dirEntries.map((dirEntry) => {
     const listName = extractNameFromPath(dirEntry.path, '/');
 
@@ -98,14 +107,46 @@ const renderDirEntries = (dirEntries, onClick, expanded) => {
         nodeId={dirEntry.path}
         label={listName}
         onLabelClick={() => onClick(dirEntry)}
+        onKeyDown={(event) =>
+          handleKeyDown(event, dirEntry, onClick, manageExpandedNode)
+        }
         icon={getTreeIcon(dirEntry, expanded)}
       >
         {dirEntry.isDir &&
           dirEntry.dirEntries &&
-          renderDirEntries(dirEntry.dirEntries, onClick, expanded)}
+          renderDirEntries(
+            dirEntry.dirEntries,
+            onClick,
+            expanded,
+            manageExpandedNode,
+          )}
       </TreeItem>
     );
   });
+};
+
+const handleKeyDown = (event, dirEntry, onClick, manageExpandedNode) => {
+  switch (event.key) {
+    case 'ArrowRight':
+      onClick(dirEntry);
+      manageExpandedNode(dirEntry.path);
+      event.stopPropagation();
+      // event.preventDefault();
+
+      break;
+    case 'ArrowLeft':
+      manageExpandedNode(dirEntry.path);
+      event.stopPropagation();
+      // event.preventDefault();
+      break;
+    case ' ':
+      zoomStore.resetZoomState();
+      // event.preventDefault();
+      event.stopPropagation();
+      break;
+    default:
+      return;
+  }
 };
 
 const getTreeIcon = (dirEntry, expanded) => {

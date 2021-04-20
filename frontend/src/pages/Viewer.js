@@ -15,13 +15,13 @@ import { MapInteractionCSS } from 'react-map-interaction';
 import API from '../api/index';
 
 const Viewer = observer(() => {
-  const [renderTextFile, setRenderTextFile] = useState('');
-  const [objectURL, setObjectURL] = useState(null);
+  const [activeImage, setActiveImage] = useState(null);
+  const [activeText, setActiveText] = useState('');
   const classes = useStyles();
 
   useEffect(() => {
     const loadImage = () => {
-      URL.revokeObjectURL(objectURL);
+      URL.revokeObjectURL(activeImage);
 
       if (dataStore.activeFile) {
         API.get(`/browse${dataStore.activeFile.path}`, {
@@ -30,13 +30,13 @@ const Viewer = observer(() => {
           .then((res) => {
             if (res.data.type === 'text/plain') {
               res.data.text().then((text) => {
-                setRenderTextFile(text);
-                setObjectURL(null);
+                setActiveText(text);
+                setActiveImage(null);
               });
             } else {
-              const objectURL = URL.createObjectURL(res.data);
-              setObjectURL(objectURL);
-              setRenderTextFile(null);
+              const activeImage = URL.createObjectURL(res.data);
+              setActiveImage(activeImage);
+              setActiveText(null);
             }
           })
           .catch((e) => {
@@ -57,20 +57,20 @@ const Viewer = observer(() => {
 
       <Grid container item xs className={classes.container__dataViewer}>
         <div className={classes.dataViewer}>
-          {objectURL && (
+          {activeImage && (
             <Grid item className={classes.container__dataViewer__img}>
               <MapInteractionCSS
                 value={zoomStore.zoomState}
                 onChange={onChangeZoom}
               >
-                <img alt="이미지" src={objectURL} />
+                <img alt="이미지" src={activeImage} />
               </MapInteractionCSS>
             </Grid>
           )}
 
-          {renderTextFile && (
+          {activeText && (
             <Grid item>
-              <pre>{renderTextFile}</pre>
+              <pre>{activeText}</pre>
             </Grid>
           )}
         </div>
@@ -130,42 +130,4 @@ export default Viewer;
     }
   }, [currentIdx, activeFiles]);
 
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      switch (e.key) {
-        case 'ArrowRight':
-        case 'ArrowDown':
-          e.preventDefault();
-          break;
-
-        case 'ArrowLeft':
-        case 'ArrowUp':
-          e.preventDefault();
-          break;
-
-        case ' ':
-          e.preventDefault();
-          setAnchorIdx(currentIdx);
-          setCurrentIdx(0);
-          break;
-
-        default:
-          return;
-      }
-    };
-
-    const handleKeyUp = (e) => {
-      if (e.key === ' ') {
-        e.preventDefault();
-        setCurrentIdx(anchorIdx);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  });
 */
