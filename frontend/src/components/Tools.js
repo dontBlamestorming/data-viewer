@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-
-import '../styles/Tools.css';
-
+import React from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
-// import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-// import { faEye, faHandPointLeft } from '@fortawesome/free-solid-svg-icons';
+/*
+  Add하기로 결정하면 사용할 코드
+    1. 현재는 하나의 사진을 볼 수 있지만, 여러개의 사진만을 select하여서 보고싶은 경우
+    2. selected된 사진의 순서를 바꾸고 싶은 경우(Drag and Drop)
+*/
 
 function Tools({ activeFiles, setActiveFiles, currentIdx, setCurrentIdx }) {
   const onDragEnd = (result) => {
@@ -25,11 +25,8 @@ function Tools({ activeFiles, setActiveFiles, currentIdx, setCurrentIdx }) {
 
     setActiveFiles(files);
     if (result.source.index === currentIdx) {
-      // active인 file을 클릭해서 드래그한다면?
       setCurrentIdx(result.destination.index);
     } else {
-      // active된게 아닌 다른 file을 클릭해서 드래그한다면?
-
       if (result.source.index < currentIdx) {
         setCurrentIdx(currentIdx - 1);
       } else if (result.source.index > currentIdx) {

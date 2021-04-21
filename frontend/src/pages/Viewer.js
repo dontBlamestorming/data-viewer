@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
-import { toJS } from 'mobx';
 
 import dataStore from '../stores/dataStore';
 import zoomStore from '../stores/zoomStore';
@@ -111,23 +110,3 @@ const useStyles = makeStyles(() => ({
 }));
 
 export default Viewer;
-
-/* 
-  const [currentIdx, setCurrentIdx] = useState(
-    activeFiles.length ? activeFiles.length - 1 : 0,
-  );
-  const [anchorIdx, setAnchorIdx] = useState(0);
-
-  const increaseCurrentId = useCallback(() => {
-    if (activeFiles.length > 0) {
-      setCurrentIdx(Math.min(currentIdx + 1, activeFiles.length - 1));
-    }
-  }, [currentIdx, activeFiles]);
-
-  const decreaseCurrentId = useCallback(() => {
-    if (activeFiles.length > 0) {
-      setCurrentIdx(Math.max(0, currentIdx - 1));
-    }
-  }, [currentIdx, activeFiles]);
-
-*/

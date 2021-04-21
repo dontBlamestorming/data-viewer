@@ -1,8 +1,10 @@
 import React, { useState, useRef, useCallback } from 'react';
 import styled from 'styled-components';
-import { MapInteractionCSS, MapInteraction } from 'react-map-interaction';
-import { Magnifier } from 'react-image-magnifiers';
+import { MapInteraction } from 'react-map-interaction';
 
+/*
+  Zoom관련 Boundary 계산할 경우 참고 코드
+*/
 const initialState = {
   zoom: {
     container: {

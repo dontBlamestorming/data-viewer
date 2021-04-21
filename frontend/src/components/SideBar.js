@@ -38,6 +38,7 @@ const SideBar = observer(() => {
 
   const manageExpandedNode = (nodeId) => {
     const extention = extractNameFromPath(nodeId, '.');
+
     if (extention === 'png' || extention === 'txt') return;
 
     const newExpandedId = expanded.includes(nodeId)
@@ -110,6 +111,7 @@ const renderDirEntries = (
         onKeyDown={(event) =>
           handleKeyDown(event, dirEntry, onClick, manageExpandedNode)
         }
+        onKeyUp={(event) => handleKeyUp(event, dirEntry, onClick)}
         icon={getTreeIcon(dirEntry, expanded)}
       >
         {dirEntry.isDir &&
@@ -125,23 +127,38 @@ const renderDirEntries = (
   });
 };
 
+const handleKeyUp = (event, dirEntry, onClick) => {
+  switch (event.key) {
+    case 'ArrowUp':
+    case 'ArrowDown':
+      if (!dirEntry.isDir) onClick(dirEntry);
+      event.stopPropagation();
+      break;
+
+    default:
+      return;
+  }
+};
+
 const handleKeyDown = (event, dirEntry, onClick, manageExpandedNode) => {
   switch (event.key) {
     case 'ArrowRight':
-      onClick(dirEntry);
-      manageExpandedNode(dirEntry.path);
+      if (dirEntry.isDir) {
+        onClick(dirEntry);
+        console.log(toJS(dirEntry));
+        manageExpandedNode(dirEntry.path);
+      }
+
       event.stopPropagation();
-      // event.preventDefault();
 
       break;
     case 'ArrowLeft':
       manageExpandedNode(dirEntry.path);
       event.stopPropagation();
-      // event.preventDefault();
       break;
+
     case ' ':
       zoomStore.resetZoomState();
-      // event.preventDefault();
       event.stopPropagation();
       break;
     default:
@@ -203,19 +220,3 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default SideBar;
-
-/*
-  for initialize -> 나중에 초기화하는 과정에서 사용할 함수
-  const getActiveDirEntries = (dirEntries) => {
-    let res = [];
-    dirEntries.forEach((item) => {
-      if (item.isActive) res.push(item);
-
-      if (item.dirEntries !== undefined && item.dirEntries.length > 0) {
-        res = res.concat(getActiveDirEntries(item.dirEntries));
-      }
-    });
-
-    return res;
-  };
-*/
