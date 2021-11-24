@@ -66,3 +66,8 @@
 └── docker-compose.yml
 ```
 ***
+
+### Architecture
+#### frontend
+- Global state management
+![data-viewer-architecture](https://user-images.githubusercontent.com/41932978/143277384-82699769-d613-40f2-8d56-93110bcd5a62.png)
