@@ -3,6 +3,7 @@
 1. [Key Summary](#key-summary)
 2. [Tech Stacks](#tech-stacks)
 3. [Directory structure](#directory-structure)
+4. [Architecture](#architecture)
 
 ### Key Summary
 - **딥러닝 모델의 학습 결과**(image, loss by epoch)를 눈으로 볼 수 있는 `web-application` 프로젝트
