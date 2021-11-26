@@ -74,13 +74,13 @@
 ![data-viewer-architecture](https://user-images.githubusercontent.com/41932978/143277384-82699769-d613-40f2-8d56-93110bcd5a62.png)
 
 ### backend(API endpoints)
-### GET - api/account/[Name]
+#### GET - api/account/[Name]
 | Name | Required | Parameter | Type | Description |
 | --- | --- | --- | --- | --- |
 | `login` | required | { email: "", password: ""} | string | Database 조회 후 일치하는 값이 있는 경우 Token 발행 |
 | `profile` | required | header: { Authorization: `Token [token]`}  | string | 해당 Token이 유효한지 검증 |
 
-### GET - api/browse/[Name]
+#### GET - api/browse/[Name]
 | Name | Required | Parameter | Type | Description |
 | --- | --- | --- | --- | --- |
 | `default` | required |  | string | mapped directory list object return |
