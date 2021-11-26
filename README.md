@@ -84,3 +84,7 @@
 | --- | --- | --- | --- | --- |
 | `default` | required |  | string | mapped directory list object return |
 | `dirEntry` | optional | `path` | string | `onClick` 이벤트가 발생한 directory의 하위 디렉토리 및 파일 list object return  |
+
+### deploy
+![data-viewer-deploy drawio](https://user-images.githubusercontent.com/41932978/143543575-546327b2-7792-4327-ae7d-650a54dc2935.png)
+
