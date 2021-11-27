@@ -69,8 +69,8 @@
 ***
 
 ### Architecture
-#### frontend
-- Global state management
+#### frontend(Global state management)
+- Mobx로 state management 구성을 개괄적으로 설명하고 있는 그림입니다. 
 ![data-viewer-architecture](https://user-images.githubusercontent.com/41932978/143277384-82699769-d613-40f2-8d56-93110bcd5a62.png)
 
 ### backend(API endpoints)
